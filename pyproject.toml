@@ -1,0 +1,24 @@
+[project]
+name = "voto-claro"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "FelipeCunha", email = "felipescunha21@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "django>=6.1.1",
+    "django-tasks-db>=0.13.0",
+    "openai>=3.10.0",
+    "pypdf>=6.18.1",
+    "python-docx>=1.2.0",
+    "python-dotenv>=1.2.3",
+]
+
+[project.scripts]
+voto-claro = "voto_claro:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"

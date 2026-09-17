@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "django-expert": {
+      "source": "vintasoftware/django-ai-plugins",
+      "sourceType": "github",
+      "skillPath": "skills/django-expert/SKILL.md",
+      "computedHash": "496dca1506ff9a57fdfeddab3404995ecaf06874cf5a1fa815cd87a6d38621cd"
+    },
+    "django-tdd": {
+      "source": "vibeeval/vibecosystem",
+      "sourceType": "github",
+      "skillPath": "skills/django-tdd/SKILL.md",
+      "computedHash": "87d63530e0bf0a2a5f07e8a58ddf33a87e89e484179b40a0221ed1e99ff43ccb"
+    },
+    "python-performance": {
+      "source": "athola/claude-night-market",
+      "sourceType": "github",
+      "skillPath": "plugins/parseltongue/skills/python-performance/SKILL.md",
+      "computedHash": "3ed5ae17d82e01c89d704e909144efadc508d1b57585f6edd8dbbb812f20db02"
+    },
+    "ui-ux-pro-max": {
+      "source": "aatrooox/blog.zzao.club",
+      "sourceType": "github",
+      "skillPath": ".opencode/skills/ui-ux-pro-max/SKILL.md",
+      "computedHash": "42e672517c626004fab65bf97355ee158a748355f1621806f6846a0b8a461cd4"
+    }
+  }
+}
