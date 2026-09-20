@@ -18,21 +18,48 @@ jobs:
         run: |
           gh pr diff ${{ github.event.issue.number }} --repo ${{ github.repository }} > pr_diff.txt
 
-      - name: Instalar Antigravity CLI (agy)
-        run: curl -fsSL https://antigravity.google/install.sh | bash
+      - name: Instalar SDK do Gemini
+        run: pip install google-genai
 
       - name: Tech Lead Gemini Review
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           USER_PROMPT: ${{ github.event.comment.body }}
         run: |
-          agy run "
-            Aja como um Tech Lead do projeto 'Voto Claro'.
-            O desenvolvedor pediu o review usando este comando: '$USER_PROMPT'
-            
-            Leia o arquivo 'pr_diff.txt'. Com base nas regras do arquivo 'GEMINI.md', analise este Pull Request e gere um relatório Markdown.
-            Foque principalmente no que o desenvolvedor pediu no comando. Se não pedir nada específico, foque em: Idioma, TDD e Segurança.
-          " > review_report.md
+          python -c "
+          import os
+          from google import genai
+
+          client = genai.Client(api_key=os.environ['GEMINI_API_KEY'])
+          
+          try:
+              with open('pr_diff.txt', 'r') as f:
+                  diff_content = f.read()
+              with open('GEMINI.md', 'r') as f:
+                  rules_content = f.read()
+          except Exception as e:
+              diff_content = f'Erro ao ler arquivos: {e}'
+              rules_content = ''
+
+          prompt = f'''Aja como o Tech Lead do projeto Voto Claro.
+          O desenvolvedor pediu o review usando o comando: {os.environ.get('USER_PROMPT')}
+          
+          REGRAS DO PROJETO (GEMINI.md):
+          {rules_content}
+          
+          CÓDIGO MODIFICADO (DIFF):
+          {diff_content}
+          
+          Gere um relatório Markdown focando no que foi pedido. Se não pedirem nada específico, foque em Idioma, TDD e Segurança.'''
+          
+          response = client.models.generate_content(
+              model='gemini-2.5-flash',
+              contents=prompt
+          )
+          
+          with open('review_report.md', 'w') as f:
+              f.write(response.text)
+          "
           
       - name: Postar Resposta no PR
         uses: actions/github-script@v7
