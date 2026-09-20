@@ -172,6 +172,9 @@ Sempre que acionado, o Gemini lerá as diferenças de código do PR e o seu come
 Crie o arquivo exatamente neste caminho dentro do seu projeto:
 👉 `.github/workflows/gemini_chat_review.yml`
 
+> **⚠️ IMPORTANTE (Configuração do GitHub):**
+> Para que o robô consiga postar o comentário, acesse o repositório no GitHub em: **Settings > Actions > General**, role até **Workflow permissions** e marque a opção **"Read and write permissions"**.
+
 E cole o seguinte conteúdo:
 
 ```yaml
@@ -180,6 +183,11 @@ name: Gemini ChatOps Review
 on:
   issue_comment:
     types: [created] # Dispara apenas quando um comentário for postado
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
 
 jobs:
   gemini-review:
@@ -194,24 +202,50 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Usa o CLI do GitHub para baixar o diff do PR atual com segurança
           gh pr diff ${{ github.event.issue.number }} --repo ${{ github.repository }} > pr_diff.txt
 
-      - name: Instalar Antigravity CLI (agy)
-        run: curl -fsSL https://antigravity.google/install.sh | bash
+      - name: Instalar SDK do Gemini
+        run: pip install google-genai
 
       - name: Tech Lead Gemini Review
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           USER_PROMPT: ${{ github.event.comment.body }}
         run: |
-          agy run "
-            Aja como o Tech Lead do projeto 'Voto Claro'.
-            O desenvolvedor pediu o review usando este comando: '$USER_PROMPT'
-            
-            Leia o arquivo 'pr_diff.txt'. Com base nas regras do arquivo 'GEMINI.md', analise este Pull Request e gere um relatório Markdown.
-            Foque principalmente no que o desenvolvedor pediu no comando. Se não pedir nada específico, foque em: Idioma, TDD e Segurança.
-          " > review_report.md
+          python -c "
+          import os
+          from google import genai
+
+          client = genai.Client(api_key=os.environ['GEMINI_API_KEY'])
+          
+          try:
+              with open('pr_diff.txt', 'r') as f:
+                  diff_content = f.read()
+              with open('GEMINI.md', 'r') as f:
+                  rules_content = f.read()
+          except Exception as e:
+              diff_content = f'Erro ao ler arquivos: {e}'
+              rules_content = ''
+
+          prompt = f'''Aja como o Tech Lead do projeto Voto Claro.
+          O desenvolvedor pediu o review usando o comando: {os.environ.get('USER_PROMPT')}
+          
+          REGRAS DO PROJETO (GEMINI.md):
+          {rules_content}
+          
+          CÓDIGO MODIFICADO (DIFF):
+          {diff_content}
+          
+          Gere um relatório Markdown focando no que foi pedido. Se não pedirem nada específico, foque em Idioma, TDD e Segurança.'''
+          
+          response = client.models.generate_content(
+              model='gemini-3.6-flash',
+              contents=prompt
+          )
+          
+          with open('review_report.md', 'w') as f:
+              f.write(response.text)
+          "
           
       - name: Postar Resposta no PR
         uses: actions/github-script@v7
@@ -223,7 +257,9 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "🤖 **Gemini Code Review**\n\n" + report
+              body: "🤖 **Gemini Code Review**
+
+" + report
             });
 ```
 
@@ -234,6 +270,7 @@ jobs:
 3. O GitHub Actions reconhece o comando.
 4. O Gemini baixa o diff do PR, cruza com seu comentário e com o `GEMINI.md`.
 5. O Gemini posta um novo comentário no PR com a análise focada no que você pediu.
+6. **Sincronização:** Após aprovar e mesclar (merge) o PR diretamente no site do GitHub, retorne ao seu terminal local e execute `git checkout main` seguido de `git pull`. Isso garante que as alterações da nuvem sejam baixadas para o seu computador, evitando conflitos de versão na próxima tarefa.
 
 ---
 
