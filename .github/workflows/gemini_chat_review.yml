@@ -16,7 +16,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr view ${{ github.event.issue.number }} --repo ${{ github.repository }} --diff > pr_diff.txt
+          gh pr diff ${{ github.event.issue.number }} --repo ${{ github.repository }} > pr_diff.txt
 
       - name: Instalar Antigravity CLI (agy)
         run: curl -fsSL https://antigravity.google/install.sh | bash
