@@ -1,2 +1,0 @@
-Fase 4  - CI/CD 
-Pull request com IA
