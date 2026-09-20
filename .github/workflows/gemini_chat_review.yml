@@ -27,7 +27,7 @@ jobs:
           USER_PROMPT: ${{ github.event.comment.body }}
         run: |
           agy run "
-            Aja como o Tech Lead do projeto 'Voto Claro'.
+            Aja como um Tech Lead do projeto 'Voto Claro'.
             O desenvolvedor pediu o review usando este comando: '$USER_PROMPT'
             
             Leia o arquivo 'pr_diff.txt'. Com base nas regras do arquivo 'GEMINI.md', analise este Pull Request e gere um relatório Markdown.
