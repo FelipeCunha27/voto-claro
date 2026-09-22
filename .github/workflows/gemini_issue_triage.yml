@@ -1,0 +1,71 @@
+name: Triage de Issues & Story Points (Aula 05)
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  gemini-issue-triage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout das Regras do Projeto
+        uses: actions/checkout@v4
+
+      - name: Instalar SDK do Gemini
+        run: pip install google-genai
+
+      - name: Scrum Master Issue Analysis
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python -c "
+          import os
+          from google import genai
+
+          client = genai.Client(api_key=os.environ['GEMINI_API_KEY'])
+          
+          try:
+              with open('GEMINI.md', 'r') as f:
+                  rules_content = f.read()
+          except Exception:
+              rules_content = ''
+
+          prompt = f'''Aja como o Scrum Master e Tech Lead do projeto Voto Claro.
+          Uma nova Issue acabou de ser aberta no repositório.
+          
+          TÍTULO: {os.environ.get('ISSUE_TITLE')}
+          DESCRIÇÃO: {os.environ.get('ISSUE_BODY')}
+          
+          REGRAS GERAIS:
+          {rules_content}
+          
+          SUAS TAREFAS OBRIGATÓRIAS:
+          1. Validação de Escopo: A issue faz sentido para o Voto Claro?
+          2. Story Points: Estime o esforço usando a sequência de Fibonacci (1, 2, 3, 5, 8, 13). Justifique brevemente.
+          3. Arquitetura Estimada: Diga quais apps (ex: accounts, bills, panel) ou arquivos do Django o desenvolvedor provavelmente precisará criar/editar.
+          '''
+          
+          response = client.models.generate_content(model='gemini-3.6-flash', contents=prompt)
+          
+          with open('issue_report.md', 'w') as f:
+              f.write(response.text)
+          "
+          
+      - name: Postar Triagem na Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('issue_report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "👔 **Gemini Scrum Master (Aula 05)**\n\n" + report
+            });
