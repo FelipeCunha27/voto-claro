@@ -1,0 +1,1 @@
+def calcular_votos(votos_sim, votos_nao): return votos_sim - votos_nao
