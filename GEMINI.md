@@ -1,12 +1,12 @@
 # Regras do Projeto — Voto Claro (Antigravity)
 
-## 🌐 Idioma (REGRA ESTRITA)
+## 🌐 Idioma (REGRA ATUALIZADA)
 
-**Todo este projeto deve ser mantido em Português (pt-BR).**
-Isso inclui: documentação (arquivos `.md`), comentários no código, mensagens de commit, nomes de variáveis, classes de domínio e arquivos.
-O uso do **Inglês é restrito APENAS** à sintaxe nativa da linguagem (Python) e às palavras-chave do framework (Django).
-*Exemplo Certo:* `class ProjetoDeLei(models.Model):`
-*Exemplo Errado:* `class LawProject(models.Model):`
+**O projeto utiliza um modelo bilíngue (Documentação em pt-BR e Código em Inglês).**
+- **Português (pt-BR):** Documentação (arquivos `.md`), comentários explicativos no código, textos da interface do usuário (templates HTML) e textos voltados ao usuário final.
+- **Inglês:** Todo o código fonte. Isso inclui nomes de variáveis, classes, modelos (models), métodos, funções, arquivos, rotas e mensagens de commit.
+*Exemplo Certo:* `class Bill(models.Model):`
+*Exemplo Errado:* `class ProjetoDeLei(models.Model):`
 
 ## 🏗️ Estado do Projeto
 
