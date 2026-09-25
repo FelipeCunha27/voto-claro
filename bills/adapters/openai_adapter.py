@@ -1,7 +1,8 @@
-from pydantic import BaseModel
-import openai
 import os
-from django.conf import settings
+
+import openai
+from pydantic import BaseModel
+
 
 class GenerationResult(BaseModel):
     summary: str
@@ -11,18 +12,27 @@ class GenerationResult(BaseModel):
     is_legislative_text: bool
     suggested_theme: str | None
 
+
 class TransientGenerationError(Exception):
+    """Erro transiente na comunicação com a OpenAI (ex: timeout, limit rate)."""
     pass
 
+
 class PermanentGenerationError(Exception):
+    """Erro permanente ou violação de contrato com a OpenAI."""
     pass
+
 
 try:
     client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY", "dummy"))
 except Exception:
     client = None
 
+
 def generate_accessible_version(source_text: str, themes: list[str]) -> GenerationResult:
+    """
+    Gera uma versão acessível do texto legislativo utilizando a API da OpenAI.
+    """
     if not client:
         raise PermanentGenerationError("API key missing or invalid")
         
@@ -36,16 +46,20 @@ def generate_accessible_version(source_text: str, themes: list[str]) -> Generati
             response_format=GenerationResult,
             timeout=30,
         )
-        return response.parsed
-    except openai.RateLimitError as e:
+        
+        message = response.choices[0].message
+        
+        if getattr(message, "refusal", None) or getattr(message, "parsed", None) is None:
+            raise PermanentGenerationError("Schema violation or refusal")
+            
+        if not message.parsed.is_legislative_text:
+            raise PermanentGenerationError("Not a legislative text")
+            
+        return message.parsed
+        
+    except (openai.RateLimitError, openai.APIConnectionError, openai.InternalServerError) as e:
         raise TransientGenerationError(str(e))
-    except openai.APIConnectionError as e:
-        raise TransientGenerationError(str(e))
-    except openai.InternalServerError as e:
-        raise TransientGenerationError(str(e))
-    except openai.LengthError as e:
-        raise PermanentGenerationError(str(e))
-    except openai.BadRequestError as e:
-        raise PermanentGenerationError(str(e))
+    except PermanentGenerationError:
+        raise
     except Exception as e:
         raise PermanentGenerationError(str(e))

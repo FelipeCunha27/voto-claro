@@ -52,9 +52,9 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T009 [P] [US1] Contract tests for `openai_adapter` (valid, transient errors, schema violation, `is_legislative_text=false`) in `src/voto_claro/bills/tests/test_adapters.py`.
-- [ ] T010 [P] [US1] Unit tests for `Submission` validation (500-50k chars, Portuguese, PDF/DOCX) and rate limit (5/24h) in `src/voto_claro/bills/tests/test_models.py`.
-- [ ] T011 [P] [US1] Integration tests for `enviar` and `minhas-submissoes` views in `src/voto_claro/bills/tests/test_views.py`.
+- [x] T009 [P] [US1] Contract tests for `openai_adapter` (valid, transient errors, schema violation, `is_legislative_text=false`) in `src/voto_claro/bills/tests/test_adapters.py`.
+- [x] T010 [P] [US1] Unit tests for `Submission` validation (500-50k chars, Portuguese, PDF/DOCX) and rate limit (5/24h) in `src/voto_claro/bills/tests/test_models.py`.
+- [x] T011 [P] [US1] Integration tests for `enviar` and `minhas-submissoes` views in `src/voto_claro/bills/tests/test_views.py`.
 
 ### Implementation for User Story 1
 

@@ -1,11 +1,14 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from bills.models import Submission, Bill
-from bills.forms import SubmissionForm
-from bills.services.screening import compute_content_hash
-from bills.services.extraction import extract_text
-from bills.tasks import generate_accessible_version_task
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import ValidationError
+from django.http import HttpResponseForbidden
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+
+from bills.forms import SubmissionForm
+from bills.models import Bill, Submission
+from bills.services.extraction import extract_text
+from bills.services.screening import compute_content_hash
+from bills.tasks import generate_accessible_version_task
 
 @login_required
 def enviar(request):
@@ -38,7 +41,7 @@ def enviar(request):
             try:
                 submission.full_clean() # model validation
                 submission.save()
-                generate_accessible_version_task.enqueue(submission.pk)
+                generate_accessible_version_task.enqueue(str(submission.pk))
                 return redirect('minhas_submissoes_detail', pk=submission.pk)
             except ValidationError as e:
                 form.add_error(None, e)
@@ -55,9 +58,6 @@ def minhas_submissoes(request):
 def minhas_submissoes_detail(request, pk):
     submission = get_object_or_404(Submission, pk=pk, submitter=request.user)
     return render(request, 'bills/minhas_submissoes_detail.html', {'submission': submission})
-from django.contrib.auth.decorators import user_passes_test
-from django.http import HttpResponseForbidden
-from django.utils import timezone
 
 def is_curator(user):
     return user.is_authenticated and user.is_curator

@@ -1,3 +1,6 @@
+from datetime import timedelta
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.db import models
 from django.conf import settings
 import uuid
@@ -63,15 +66,28 @@ class Submission(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
-        from django.core.exceptions import ValidationError
-        from django.utils import timezone
-        import datetime
         if self.source_text:
             usable_chars = len(self.source_text.strip())
             if usable_chars < 500 or usable_chars > 50000:
                 raise ValidationError("O texto deve ter entre 500 e 50.000 caracteres.")
-        if self._state.adding:
-            yesterday = timezone.now() - datetime.timedelta(days=1)
+                
+            common_pt_words = {"de", "a", "o", "que", "e", "do", "da", "em", "um", "para", "com", "não", "uma", "os", "no"}
+            words = set(self.source_text.lower().split())
+            if not common_pt_words.intersection(words):
+                raise ValidationError("O texto deve estar em português.")
+
+        if self.input_kind in [self.InputKind.PDF, self.InputKind.DOCX]:
+            if not self.uploaded_file:
+                raise ValidationError("O arquivo enviado deve corresponder ao tipo selecionado (PDF/DOCX).")
+            
+            ext = self.uploaded_file.name.split('.')[-1].lower() if self.uploaded_file.name else ""
+            if self.input_kind == self.InputKind.PDF and ext != 'pdf':
+                raise ValidationError("O arquivo enviado deve corresponder ao tipo selecionado (PDF/DOCX).")
+            if self.input_kind == self.InputKind.DOCX and ext != 'docx':
+                raise ValidationError("O arquivo enviado deve corresponder ao tipo selecionado (PDF/DOCX).")
+
+        if self._state.adding and getattr(self, "submitter_id", None):
+            yesterday = timezone.now() - timedelta(days=1)
             recent_count = Submission.objects.filter(submitter=self.submitter, created_at__gte=yesterday).count()
             if recent_count >= 5:
                 raise ValidationError("Limite de submissões excedido. Você pode enviar até 5 projetos a cada 24 horas.")
