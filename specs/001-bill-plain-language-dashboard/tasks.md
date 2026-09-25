@@ -35,7 +35,7 @@
 
 - [x] T005 [P] Write failing tests for custom User model in `src/voto_claro/accounts/tests/test_models.py`.
 - [x] T006 Create `User` model extending Django's `AbstractUser` with `is_curator` (boolean) in `src/voto_claro/accounts/models.py`.
-- [ ] T007 Configure initial migrations and authentication backend (login, logout, registration) for `accounts` app.
+- [x] T007 Configure initial migrations and authentication backend (login, logout, registration) for `accounts` app.
 - [ ] T008 [P] Setup base URL routing for `accounts`, `bills`, and `panel` in `core/urls.py`.
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel

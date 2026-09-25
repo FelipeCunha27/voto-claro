@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Entrar - Voto Claro</title>
+</head>
+<body>
+    <h2>Entrar</h2>
+    {% if form.errors %}
+        <p>Por favor, entre com um usuário e senha corretos.</p>
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Entrar</button>
+    </form>
+    <p>Não tem uma conta? <a href="{% url 'registrar' %}">Registre-se</a></p>
+</body>
+</html>
