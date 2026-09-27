@@ -109,7 +109,7 @@
 - [x] T028 [US3] Create `Flag` model in `src/voto_claro/bills/models.py`. Constraints: `version` FK AccessibleVersion, `reporter` FK nullable, `description` text required, `state` enum (open/resolved/dismissed), `excerpt` text optional.
 - [x] T029 [US3] Implement GET `/projeto/<slug>/original/` view and side-by-side comparison template in `src/voto_claro/panel/views.py`.
 - [x] T030 [US3] Implement GET/POST `/projeto/<slug>/sinalizar/` flag submission view in `src/voto_claro/panel/views.py`.
-- [ ] T031 [US3] Add pending review notice logic to `/projeto/<slug>/` template, checking authenticated flags vs `review_notice_override`.
+- [x] T031 [US3] Add pending review notice logic to `/projeto/<slug>/` template, checking authenticated flags vs `review_notice_override`.
 
 **Checkpoint**: All user stories should now be independently functional
 
