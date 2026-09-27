@@ -57,10 +57,26 @@ jobs:
           2. Geração de Changelog: Crie uma seção chamada '# 📝 Changelog Gerado' detalhando tecnicamente as alterações prontas para ir para a branch main.
           '''
           
-          response = client.models.generate_content(model='gemini-3.5-flash', contents=prompt)
+          models_to_try = ["gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.8-flash"]
+          response = None
           
-          with open('review_report.md', 'w') as f:
-              f.write(response.text)
+          for model_name in models_to_try:
+              print(f"Tentando usar o modelo: {model_name}...")
+              try:
+                  response = client.models.generate_content(model=model_name, contents=prompt)
+                  print(f"Sucesso com o modelo: {model_name}!")
+                  break
+              except Exception as e:
+                  print(f"Falha ao usar {model_name}: {e}")
+                  continue
+          
+          if response:
+              report_text = response.text
+          else:
+              report_text = "❌ **Tech Lead Offline:** Todos os modelos da API do Gemini (3.5, 3.6 e 3.8) estão congestionados (Erro 503). O merge deste PR precisará ser revisado manualmente ou retentado mais tarde."
+          
+          with open("review_report.md", "w") as f:
+              f.write(report_text)
           "
           
       - name: Postar Code Review Automático
