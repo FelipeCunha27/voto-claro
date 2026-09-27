@@ -36,7 +36,7 @@
 - [x] T005 [P] Write failing tests for custom User model in `src/voto_claro/accounts/tests/test_models.py`.
 - [x] T006 Create `User` model extending Django's `AbstractUser` with `is_curator` (boolean) in `src/voto_claro/accounts/models.py`.
 - [x] T007 Configure initial migrations and authentication backend (login, logout, registration) for `accounts` app.
-- [ ] T008 [P] Setup base URL routing for `accounts`, `bills`, and `panel` in `core/urls.py`.
+- [x] T008 [P] Setup base URL routing for `accounts`, `bills`, and `panel` in `core/urls.py`.
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -58,15 +58,15 @@
 
 ### Implementation for User Story 1
 
-- [ ] T012 [US1] Create `Theme` (id, name, slug) and `Bill` (id: uuid, slug: unique, title, origin_body, bill_number, bill_year, theme: FK nullable, official_source_url, current_version: FK nullable, review_notice_override: enum 'auto|forced_on|forced_off', first_published_at, updated_at) in `src/voto_claro/bills/models.py`.
-- [ ] T013 [US1] Create `Submission` model in `src/voto_claro/bills/models.py`. Constraints: `submitter` FK PROTECT, `title` string(300), `origin_body` string(200), `bill_number` string(50) optional, `bill_year` integer optional, `source_text` text write-once (500-50k chars), `input_kind` enum pasted/pdf/docx, `content_hash` string(64), `status` enum (received/processing/generated/published/unpublished/failed/rejected), `attempt_count` int.
-- [ ] T014 [US1] Create `AccessibleVersion` model in `src/voto_claro/bills/models.py`. Constraints: append-only, `bill` FK CASCADE, `submission` FK PROTECT, `version_number` int unique with bill, `summary` text required, `who_is_affected` text required, `practical_changes` text required, `points_of_attention` text required, `is_ai_generated` bool default true, `review_state` enum (pending/approved/rejected/superseded).
-- [ ] T015 [US1] Implement text extraction (`pypdf`, `python-docx`) in `src/voto_claro/bills/services/extraction.py`.
-- [ ] T016 [US1] Implement duplicate detection (via `content_hash`) and submission screening in `src/voto_claro/bills/services/screening.py`.
-- [ ] T017 [US1] Implement `generate_accessible_version` port using `client.responses.parse` in `src/voto_claro/bills/adapters/openai_adapter.py`.
-- [ ] T018 [US1] Implement async task `generate_accessible_version` coordinating adapter and state machine in `src/voto_claro/bills/tasks.py`.
-- [ ] T019 [US1] Create submission form and POST `/enviar/` view with rate limiting (max 5 in 24h) in `src/voto_claro/bills/views.py`.
-- [ ] T020 [US1] Create GET `/minhas-submissoes/` list and `/minhas-submissoes/<uuid>/` detail views/templates in `src/voto_claro/bills/views.py`.
+- [x] T012 [US1] Create `Theme` (id, name, slug) and `Bill` (id: uuid, slug: unique, title, origin_body, bill_number, bill_year, theme: FK nullable, official_source_url, current_version: FK nullable, review_notice_override: enum 'auto|forced_on|forced_off', first_published_at, updated_at) in `src/voto_claro/bills/models.py`.
+- [x] T013 [US1] Create `Submission` model in `src/voto_claro/bills/models.py`. Constraints: `submitter` FK PROTECT, `title` string(300), `origin_body` string(200), `bill_number` string(50) optional, `bill_year` integer optional, `source_text` text write-once (500-50k chars), `input_kind` enum pasted/pdf/docx, `content_hash` string(64), `status` enum (received/processing/generated/published/unpublished/failed/rejected), `attempt_count` int.
+- [x] T014 [US1] Create `AccessibleVersion` model in `src/voto_claro/bills/models.py`. Constraints: append-only, `bill` FK CASCADE, `submission` FK PROTECT, `version_number` int unique with bill, `summary` text required, `who_is_affected` text required, `practical_changes` text required, `points_of_attention` text required, `is_ai_generated` bool default true, `review_state` enum (pending/approved/rejected/superseded).
+- [x] T015 [US1] Implement text extraction (`pypdf`, `python-docx`) in `src/voto_claro/bills/services/extraction.py`.
+- [x] T016 [US1] Implement duplicate detection (via `content_hash`) and submission screening in `src/voto_claro/bills/services/screening.py`.
+- [x] T017 [US1] Implement `generate_accessible_version` port using `client.responses.parse` in `src/voto_claro/bills/adapters/openai_adapter.py`.
+- [x] T018 [US1] Implement async task `generate_accessible_version` coordinating adapter and state machine in `src/voto_claro/bills/tasks.py`.
+- [x] T019 [US1] Create submission form and POST `/enviar/` view with rate limiting (max 5 in 24h) in `src/voto_claro/bills/views.py`.
+- [x] T020 [US1] Create GET `/minhas-submissoes/` list and `/minhas-submissoes/<uuid>/` detail views/templates in `src/voto_claro/bills/views.py`.
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -102,14 +102,14 @@
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T027 [P] [US3] Write failing tests for flag creation (auth vs anon nullity) in `src/voto_claro/panel/tests/test_flags.py`.
+- [x] T027 [P] [US3] Write failing tests for flag creation (auth vs anon nullity) in `src/voto_claro/panel/tests/test_flags.py`.
 
 ### Implementation for User Story 3
 
-- [ ] T028 [US3] Create `Flag` model in `src/voto_claro/bills/models.py`. Constraints: `version` FK AccessibleVersion, `reporter` FK nullable, `description` text required, `state` enum (open/resolved/dismissed), `excerpt` text optional.
-- [ ] T029 [US3] Implement GET `/projeto/<slug>/original/` view and side-by-side comparison template in `src/voto_claro/panel/views.py`.
-- [ ] T030 [US3] Implement GET/POST `/projeto/<slug>/sinalizar/` flag submission view in `src/voto_claro/panel/views.py`.
-- [ ] T031 [US3] Add pending review notice logic to `/projeto/<slug>/` template, checking authenticated flags vs `review_notice_override`.
+- [x] T028 [US3] Create `Flag` model in `src/voto_claro/bills/models.py`. Constraints: `version` FK AccessibleVersion, `reporter` FK nullable, `description` text required, `state` enum (open/resolved/dismissed), `excerpt` text optional.
+- [x] T029 [US3] Implement GET `/projeto/<slug>/original/` view and side-by-side comparison template in `src/voto_claro/panel/views.py`.
+- [x] T030 [US3] Implement GET/POST `/projeto/<slug>/sinalizar/` flag submission view in `src/voto_claro/panel/views.py`.
+- [x] T031 [US3] Add pending review notice logic to `/projeto/<slug>/` template, checking authenticated flags vs `review_notice_override`.
 
 **Checkpoint**: All user stories should now be independently functional
 

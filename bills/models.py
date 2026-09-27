@@ -31,6 +31,19 @@ class Bill(models.Model):
     review_notice_override = models.CharField(max_length=20, choices=ReviewNoticeOverride.choices, default=ReviewNoticeOverride.AUTO)
     first_published_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    @property
+    def has_pending_review(self):
+        if self.review_notice_override == self.ReviewNoticeOverride.FORCED_ON:
+            return True
+        if self.review_notice_override == self.ReviewNoticeOverride.FORCED_OFF:
+            return False
+        if self.current_version:
+            return self.current_version.flag_set.filter(
+                reporter__isnull=False, 
+                state=Flag.State.OPEN
+            ).exists()
+        return False
 
 class Submission(models.Model):
     class Status(models.TextChoices):
@@ -67,7 +80,13 @@ class Submission(models.Model):
 
     def clean(self):
         if self.source_text:
-            pass # Limitação de caracteres e idioma removidas a pedido
+            if len(self.source_text) < 500 or len(self.source_text) > 50000:
+                raise ValidationError("O texto deve ter entre 500 e 50.000 caracteres.")
+            
+            # Validação simples de português baseada em palavras-chave
+            pt_keywords = [' o ', ' a ', ' os ', ' as ', ' um ', ' uma ', ' de ', ' do ', ' da ', ' que ', ' para ']
+            if not any(kw in self.source_text.lower() for kw in pt_keywords):
+                raise ValidationError("O texto deve estar em português.")
 
         if self.input_kind in [self.InputKind.PDF, self.InputKind.DOCX]:
             if not self.uploaded_file:
@@ -82,7 +101,7 @@ class Submission(models.Model):
         if self._state.adding and getattr(self, "submitter_id", None):
             yesterday = timezone.now() - timedelta(days=1)
             recent_count = Submission.objects.filter(submitter=self.submitter, created_at__gte=yesterday).count()
-            if recent_count >= 5000: # Limite aumentado para testes
+            if recent_count >= 5:
                 raise ValidationError("Limite de submissões excedido. Você pode enviar até 5 projetos a cada 24 horas.")
 
 class AccessibleVersion(models.Model):
@@ -129,6 +148,9 @@ class Flag(models.Model):
     resolved_at = models.DateTimeField(null=True, blank=True)
     resolved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Flag on {self.version.bill.slug} - {self.get_state_display()}"
 
 class AuditEntry(models.Model):
     class Action(models.TextChoices):

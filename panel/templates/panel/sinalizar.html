@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sinalizar Problema - {{ bill.title }}</title>
+</head>
+<body>
+    <a href="{% url 'panel_detail' bill.slug %}">&laquo; Voltar para o projeto</a>
+    <h1>Sinalizar Problema</h1>
+    <p>Projeto: {{ bill.title }}</p>
+
+    {% if form.errors %}
+    <div style="color: red; border: 1px solid red; padding: 10px; margin-bottom: 15px;">
+        Corrija os erros abaixo.
+    </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Enviar Sinalização</button>
+    </form>
+</body>
+</html>

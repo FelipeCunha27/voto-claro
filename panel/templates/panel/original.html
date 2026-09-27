@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparação - {{ bill.title }}</title>
+    <style>
+        .container { display: flex; gap: 20px; padding: 20px; }
+        .col { flex: 1; border: 1px solid #ccc; padding: 15px; }
+    </style>
+</head>
+<body>
+    <a href="{% url 'panel_detail' bill.slug %}">&laquo; Voltar para o resumo</a>
+    <h1>Comparação - {{ bill.title }}</h1>
+    <div class="container">
+        <div class="col">
+            <h2>Texto Original</h2>
+            <div style="white-space: pre-wrap;">{{ bill.current_version.submission.source_text }}</div>
+        </div>
+        <div class="col">
+            <h2>Texto Simplificado</h2>
+            <div style="white-space: pre-wrap;">{{ bill.current_version.summary }}
+            
+{{ bill.current_version.who_is_affected }}
+            
+{{ bill.current_version.practical_changes }}</div>
+        </div>
+    </div>
+</body>
+</html>
