@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalhes da Submissão</title>
+</head>
+<body>
+    <h1>Detalhes da Submissão</h1>
+    <p><strong>Título:</strong> {{ submission.title }}</p>
+    <p><strong>Órgão de Origem:</strong> {{ submission.origin_body }}</p>
+    {% if submission.bill_number %}
+        <p><strong>Número:</strong> {{ submission.bill_number }}</p>
+    {% endif %}
+    {% if submission.bill_year %}
+        <p><strong>Ano:</strong> {{ submission.bill_year }}</p>
+    {% endif %}
+    <p><strong>Status:</strong> {{ submission.get_status_display }}</p>
+    <p><strong>Data de Envio:</strong> {{ submission.created_at|date:"d/m/Y H:i" }}</p>
+
+    {% if submission.rejection_reason %}
+        <p><strong>Motivo da Rejeição:</strong> {{ submission.rejection_reason }}</p>
+    {% endif %}
+    {% if submission.failure_reason %}
+        <p><strong>Motivo da Falha:</strong> {{ submission.failure_reason }}</p>
+    {% endif %}
+
+    <h2>Resumo Gerado pela IA</h2>
+    {% with version=submission.accessibleversion_set.first %}
+        {% if version %}
+            <p>{{ version.summary }}</p>
+            <h3>Quem é Afetado</h3>
+            <p>{{ version.who_is_affected }}</p>
+            <h3>Mudanças Práticas</h3>
+            <p>{{ version.practical_changes }}</p>
+            <h3>Pontos de Atenção</h3>
+            <p>{{ version.points_of_attention }}</p>
+        {% else %}
+            <p>Ainda não há um resumo gerado para esta submissão. O processamento pode estar em andamento ou ocorreu um erro.</p>
+        {% endif %}
+    {% endwith %}
+
+    <p><a href="{% url 'minhas_submissoes' %}">Voltar para minhas submissões</a></p>
+</body>
+</html>

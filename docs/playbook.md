@@ -1,339 +1,58 @@
-# 🏛️ Playbook de Desenvolvimento — Voto Claro (Antigravity Edition)
+# Playbook do Projeto: Voto Claro 🇧🇷
+*Documento vivo de arquitetura e histórico de evolução do projeto.*
 
-> Guia passo a passo para construir o projeto **do zero ao deploy**, aplicando a metodologia **DAPIA** (Desenvolvimento Assistido por IA) da Pythonando, adaptada para o ecossistema **Google Antigravity (Gemini)**.
-
----
-
-## O Projeto
-
-**Voto Claro** é um sistema web que recebe projetos políticos (leis, propostas, emendas), traduz os termos complexos para linguagem acessível usando IA, e apresenta as propostas de forma clara para o público leigo.
-
-### Visão do Produto
-
-| Campo | Valor |
-|---|---|
-| **Stack** | Python + Django + SQLite → PostgreSQL |
-| **IA** | Gemini API (gemini-1.5-flash) para tradução/simplificação |
-| **Frontend** | Django Templates + HTMX (interatividade sem SPA) |
-| **Público** | Cidadãos que querem entender propostas políticas |
-| **Ferramenta IA**| **Antigravity 2.0 / Antigravity IDE** |
-| **Metodologia** | SDD + TDD + Context Engineering + Quality Gate + Segurança |
+## Metodologia Geral
+- **Regra de Idioma (Bilinguismo):** O código-fonte, models, variáveis e arquivos de configuração são escritos obrigatoriamente em **Inglês**. A documentação (`.md`), os templates visuais (HTML) e as interações com o usuário final são escritos em **Português (PT-BR)**. Essa regra está fixada no `GEMINI.md`.
+- **Desenvolvimento Guiado a Testes (TDD):** Adoção rigorosa do ciclo Red-Green-Blue (Refactor). Todas as views e models têm cobertura de testes unitários.
 
 ---
 
-## Fase 1 — Setup do Ferramental (Antigravity)
+## Histórico de Fases e Progresso
 
-Nesta fase, substituímos o Claude Code pelo Antigravity, ganhando recursos mais avançados como Hooks e execução paralela.
+### Fase 1: Fundação e Setup do Projeto ✅
+- **Gerenciamento de Pacotes:** Inicialização do projeto usando `uv` como gerenciador de pacotes e ambientes virtuais, garantindo altíssima velocidade.
+- **Configurações Iniciais do Django:** Criação do projeto `voto_claro` e do app `core`.
+- **Fila de Tarefas (Background):** Instalação e configuração do `django-tasks` (com `django-tasks-db`) em `core/settings.py` para processamento assíncrono de Inteligência Artificial sem travar o navegador do usuário.
+- **Integração Contínua (ChatOps):** Criação de workflows automatizados na pasta `.github/workflows/`:
+  - `gemini_pr_review.yml`: Tech Lead automatizado que valida TDD, Idioma e gera Changelogs em Pull Requests.
+  - `gemini_issue_triage.yml`: Scrum Master virtual que estima Story Points nas issues.
+  - `gemini_chat_review.yml`: Acionamento sob demanda do Gemini via comentários no PR.
 
-### 1.1 Criar o projeto Django
+### Fase 2: Autenticação de Usuários ✅
+- **App `accounts`:** Criação do módulo de autenticação.
+- **Testes (TDD):** Criação de `tests_views.py` cobrindo o registro de contas, login e logout com sucesso (Status 200/302).
+- **Formulários e Views:** Criação do `CustomUserCreationForm` para simplificar o cadastro (sem necessidade de e-mail obrigatório no MVP).
+- **Templates (UI):** Telas `login.html` e `register.html` minimalistas e traduzidas para PT-BR. Configuração de redirecionamento (`LOGIN_REDIRECT_URL`).
 
-```bash
-mkdir voto_claro && cd voto_claro
-uv init
-uv venv
-source .venv/bin/activate
-uv add django google-genai python-dotenv
-django-admin startproject core .
-```
+### Fase 3: MVP - Envio de Projetos Políticos (User Story 1) ✅
+- **App `bills`:** Criação do módulo central do sistema de leis.
+- **Modelagem de Dados:**
+  - `Submission`: Guarda a fila de processamento (PDF anexado, Link ou Texto), com status (`received`, `processing`, `generated`, `failed`).
+  - `Bill`: O projeto de lei ou plano de governo consolidado, com campo `slug` auto-gerado via UUID para evitar falhas de integridade (IntegrityError).
+  - `AccessibleVersion`: A tradução estruturada em linguagem simples.
+- **UI Minimalista:** Criação de `enviar.html` com apenas 3 opções: Link, Texto ou Arquivo. HTML5 form validation bloqueios (`required=True` e limite de 50.000 caracteres) foram removidos no backend para focar na experiência do usuário.
+- **Gestão de Banco de Dados:** Remoção do teto de submissões (de 5 para 5.000 requisições/dia) para permitir testes massivos em desenvolvimento.
 
-### 1.2 Setup do Antigravity Workspace
-
-1. Abra o **Antigravity 2.0**
-2. Vá na barra lateral em **Projects** e adicione a pasta `voto_claro`.
-3. Crie o arquivo `GEMINI.md` na raiz (Substitui o antigo `CLAUDE.md`).
-
-**Conteúdo do `GEMINI.md`:**
-```markdown
-# Voto Claro
-
-## Stack
-- Python 3.12+, Django 5.x, HTMX
-- IA: OpenAI API para simplificação de textos
-
-## Regras
-- Views: usar Class-Based Views (CBV)
-- Templates: herdar de `base.html`, usar parciais com prefixo `_`
-- TDD: Teste (Red) -> Implementação (Green) -> Refatoração (Blue) obrigatório.
-```
-
-### 1.3 Configurar Skills e Hooks
-
-O Antigravity usa a pasta `.agents/` para customizações.
-
-```text
-.agents/
-├── hooks.json                     # Automações de ciclo de vida
-└── skills/
-    ├── django-expert/SKILL.md     # Padrões Django
-    ├── django-tdd/SKILL.md        # Padrões de teste
-    └── speckit-.../SKILL.md       # Ferramentas SDD
-```
-
-**O superpoder do Antigravity: `hooks.json`**
-Crie um hook para rodar o linter automaticamente toda vez que o agente editar um arquivo:
-
-```json
-{
-  "auto-lint": {
-    "PostToolUse": [
-      {
-        "matcher": "replace_file_content|write_to_file",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "ruff check --fix . 2>/dev/null || true",
-            "timeout": 15
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-### 1.4 Conectar MCP Servers (Context7)
-
-No Antigravity, você gerencia os MCPs globalmente em `~/.gemini/config/mcp_config.json`. Adicione o Context7 para trazer a documentação atualizada do Django/OpenAI:
-
-```json
-{
-  "mcpServers": {
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"]
-    }
-  }
-}
-```
+### Fase 4: O "Cérebro" de Inteligência Artificial ✅
+- **Motor de IA:** Transição da biblioteca da OpenAI para o uso exclusivo do SDK Oficial do Google (`google-genai`).
+- **Resolução de Instabilidade de Modelos:** 
+  - Tratamento do erro `404 NOT FOUND` em modelos descontinuados (`gemini-2.5-flash`).
+  - Tratamento de erro de infraestrutura `503 UNAVAILABLE` (Alta Demanda) no novo `gemini-3.8-flash`.
+  - Fixação no modelo `gemini-3.6-flash`, que provou ser rápido e altamente estável para a arquitetura de Structured Outputs.
+- **Engenharia de Prompt (Plain Language):** 
+  - Regra de idade: O Gemini foi instruído a escrever para um "jovem de 14 anos", eliminando palavras como "desindexação" ou "pacto federativo" sem prévia explicação prática.
+  - Expansão de Escopo: A IA, que inicialmente recusava textos que não fossem leis formais, foi re-treinada para aceitar e extrair dados de **Planos de Governo** e propostas políticas de campanhas eleitorais.
+- **Fila em Ação:** Teste com sucesso do comando `uv run manage.py db_worker`, onde o operário pega a submissão, extrai o texto do PDF, conversa com o Google Gemini e salva a tradução de forma assíncrona no banco de dados.
 
 ---
 
-## Fase 2 — Spec Driven Development (SDD)
+## O Diferencial do Voto Claro (Nosso Moat)
+Como o sistema se diferencia de pedir um resumo direto no ChatGPT?
+1. **Acervo Público Permanente:** As leis são processadas uma vez e disponibilizadas para milhões de forma estruturada.
+2. **Saída Estruturada Fixa:** Toda lei tem um cabeçalho de "Resumo", "Mudanças Práticas", "Quem é afetado" e "Pontos de Atenção", facilitando a comparação.
+3. **Deduplicação de Custos:** Sistema de *hash* evita re-processamento caro de APIs se usuários submeterem o mesmo PDF.
+4. **Camada de Auditoria (Próxima Fase):** Prevenção de alucinações através do Painel de Curadoria.
 
-> Regra de ouro: escrever código é a **última etapa**.
-
-No Antigravity, as skills do SpecKit guiam o desenvolvimento a partir de um PRD (Product Requirements Document).
-
-### 2.1 O PRD do Voto Claro (spec.md)
-
-Escreva a especificação em linguagem não-técnica. Exemplo para a tradução de leis:
-
-```markdown
-# Funcionalidade: Tradução para Linguagem Acessível
-
-O sistema deve receber um projeto de lei submetido pelo admin e traduzir
-automaticamente para linguagem acessível. A tradução deve:
-- Substituir termos jurídicos por equivalentes simples.
-- Gerar um resumo de 3 parágrafos.
-- Listar pontos positivos e negativos em tópicos.
-- Permitir edição manual antes da publicação no painel.
-```
-
-### 2.2 Fluxo SpecKit no Antigravity
-
-Peça diretamente no chat do Antigravity:
-
-1. **Especifique:** `"Use o speckit-specify para criar a spec.md detalhada"`
-2. **Planeje:** `"Use o speckit-plan para gerar o plano técnico (models, rotas)"`
-3. **Quebre em tarefas:** `"Use o speckit-tasks para gerar as tasks de implementação"`
-4. **Implemente:** `"Use o speckit-implement para executar a task-001"`
-
-*(Cada funcionalidade deve ter sua própria pasta em `specs/` e sua própria branch).*
-
----
-
-## Fase 3 — TDD com IA
-
-Com a skill `django-tdd` ativada, o agente sabe que deve seguir o Red-Green-Refactor.
-
-### O Fluxo Perfeito no Antigravity
-
-1. O agente lê a task (ex: "Criar view de submissão de projeto").
-2. Ele escreve os testes primeiro (ex: `test_retorna_200`, `test_cria_projeto_no_banco`).
-3. O agente roda o teste (`uv run manage.py test`) -> **FALHA (Red)**.
-4. O agente implementa a view e os models mínimos necessários.
-5. O agente roda o teste novamente -> **PASSA (Green)**.
-6. O agente usa o hook de `PostToolUse` para formatar e rodar linters automaticamente.
-
----
-
-## Fase 4 — CI/CD (Code Review com Gemini via ChatOps)
-
-Para replicar a experiência ensinada no curso (onde você chama a IA diretamente pelos comentários do GitHub), configuraremos o Gemini como um *Tech Lead sob demanda*. Em vez de rodar automaticamente em todo PR, ele só fará o review quando você chamar o comando `/gemini review` em um comentário.
-
-### 4.1 O Papel do Gemini no Code Review
-Sempre que acionado, o Gemini lerá as diferenças de código do PR e o seu comentário. Ele focará em:
-1. **Regra de Idioma:** Verificar se alguém usou inglês no domínio.
-2. **Conformidade TDD:** Identificar testes faltantes na pasta `tests/`.
-3. **Segurança de IA (Prompt Injection):** Garantir sanitização de inputs.
-4. **Padrões Django:** Garantir boas práticas (ex: uso de CBVs).
-
-### 4.2 O Caminho do Arquivo e o Workflow
-Crie o arquivo exatamente neste caminho dentro do seu projeto:
-👉 `.github/workflows/gemini_chat_review.yml`
-
-> **⚠️ IMPORTANTE (Configuração do GitHub):**
-> Para que o robô consiga postar o comentário, acesse o repositório no GitHub em: **Settings > Actions > General**, role até **Workflow permissions** e marque a opção **"Read and write permissions"**.
-
-E cole o seguinte conteúdo:
-
-```yaml
-name: Gemini ChatOps Review
-
-on:
-  issue_comment:
-    types: [created] # Dispara apenas quando um comentário for postado
-
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
-
-jobs:
-  gemini-review:
-    # Só executa se for um Pull Request E o comentário contiver o comando mágico
-    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/gemini review') }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout das Regras do Projeto
-        uses: actions/checkout@v4
-
-      - name: Extrair Diff do Pull Request
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr diff ${{ github.event.issue.number }} --repo ${{ github.repository }} > pr_diff.txt
-
-      - name: Instalar SDK do Gemini
-        run: pip install google-genai
-
-      - name: Tech Lead Gemini Review
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          USER_PROMPT: ${{ github.event.comment.body }}
-        run: |
-          python -c "
-          import os
-          from google import genai
-
-          client = genai.Client(api_key=os.environ['GEMINI_API_KEY'])
-          
-          try:
-              with open('pr_diff.txt', 'r') as f:
-                  diff_content = f.read()
-              with open('GEMINI.md', 'r') as f:
-                  rules_content = f.read()
-          except Exception as e:
-              diff_content = f'Erro ao ler arquivos: {e}'
-              rules_content = ''
-
-          prompt = f'''Aja como o Tech Lead do projeto Voto Claro.
-          O desenvolvedor pediu o review usando o comando: {os.environ.get('USER_PROMPT')}
-          
-          REGRAS DO PROJETO (GEMINI.md):
-          {rules_content}
-          
-          CÓDIGO MODIFICADO (DIFF):
-          {diff_content}
-          
-          Gere um relatório Markdown focando no que foi pedido. Se não pedirem nada específico, foque em Idioma, TDD e Segurança.'''
-          
-          response = client.models.generate_content(
-              model='gemini-3.6-flash',
-              contents=prompt
-          )
-          
-          with open('review_report.md', 'w') as f:
-              f.write(response.text)
-          "
-          
-      - name: Postar Resposta no PR
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const report = fs.readFileSync('review_report.md', 'utf8');
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: "🤖 **Gemini Code Review**
-
-" + report
-            });
-```
-
-### 4.3 Como funciona na prática
-1. O desenvolvedor abre um Pull Request no GitHub.
-2. Na aba de conversas (Conversation) do PR, o desenvolvedor digita um comentário: 
-   > ` /gemini review Pode checar se os testes que fiz para a extração de PDF estão cobrindo os casos de erro? `
-3. O GitHub Actions reconhece o comando.
-4. O Gemini baixa o diff do PR, cruza com seu comentário e com o `GEMINI.md`.
-5. O Gemini posta um novo comentário no PR com a análise focada no que você pediu.
-6. **Sincronização:** Após aprovar e mesclar (merge) o PR diretamente no site do GitHub, retorne ao seu terminal local e execute `git checkout main` seguido de `git pull`. Isso garante que as alterações da nuvem sejam baixadas para o seu computador, evitando conflitos de versão na próxima tarefa.
-
----
-
-## Fase 5 — Context Engineering
-
-Mantenha o contexto técnico para que a IA não se perca conforme o projeto cresce. Use a skill `doc-cycle-onboard`.
-
-### Documentos Obrigatórios (`docs/`):
-- `architecture.md`: Stack, mapa de dependências (Mermaid), estrutura de pastas.
-- `database.md`: Descrição dos Models, campos e relações.
-- `admin.md`: Configurações de .env e deploy.
-
-**Como atualizar:**
-Ao terminar uma funcionalidade, peça no chat:
-> *"Execute a skill doc-cycle-onboard para atualizar os documentos com base nas novas views e models de Projetos Políticos"*
-
-O agente percorrerá o código em modo leitura e atualizará a pasta `docs/` sem quebrar seu código.
-
----
-
-## Fase 6 — Quality Gate
-
-Os pilares da qualidade que você deve cobrar do agente:
-
-1. **Performance:** Use a skill `load-test-runner` para configurar o Locust (`locustfile.py`) e testar a rota de tradução (que chama a API externa).
-2. **Complexidade:** Peça ao agente para rodar o `radon cc .` e garantir complexidade A ou B.
-3. **Cobertura:** Mantenha testes acima de 80%. O hook do Antigravity garante que eles rodem a cada arquivo salvo.
-
----
-
-## Fase 7 — Segurança
-
-Segurança é vital em projetos políticos e com uso de IA.
-
-1. **Pentest Automatizado:** Peça no chat:
-   > *"Use a skill security-scanner para auditar a view de tradução."*
-2. **Mitigações de IA:**
-   - **Prompt Injection:** Garanta que o texto da lei é escapado e sanitizado antes de ir para o prompt do sistema.
-   - **Rate Limiting:** Evite chamadas massivas à API do Gemini.
-   - **Data Leakage:** Nunca passe dados do usuário logado ao prompt, apenas o texto da lei pública.
-
----
-
-## Resumo da Estrutura Final (Antigravity Padrão)
-
-```
-voto_claro/
-├── GEMINI.md                          # Regras Globais (Substitui CLAUDE.md)
-├── AGENTS.md                          # Regras complementares
-├── .agents/                           # Customizações do Antigravity
-│   ├── hooks.json                     # Lifecycle (Auto-lint)
-│   └── skills/                        # Skills (Progressive Disclosure)
-│       ├── django-expert/SKILL.md
-│       ├── django-tdd/SKILL.md
-│       ├── doc-cycle-onboard/SKILL.md
-│       ├── load-test-runner/SKILL.md
-│       ├── security-scanner/SKILL.md
-│       └── speckit-*/SKILL.md
-├── docs/                              # Context Engineering
-├── specs/                             # Spec Driven Development
-├── core/                              # Projeto Django
-├── accounts/                          # Autenticação
-├── projects/                          # Leis Originais
-├── translator/                        # Motor IA (OpenAI)
-└── dashboard/                         # Painel Público (HTMX)
-```
+## Próximos Passos
+- Avançar para a **User Story 2**: O Painel Público (Public Dashboard), para que qualquer cidadão não-autenticado possa buscar e ler as leis já traduzidas no banco de dados.
+- Avançar para a **User Story 4**: O Painel de Curadoria para administradores revisarem textos antes de irem ao público.

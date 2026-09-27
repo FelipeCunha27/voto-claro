@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Enviar Projeto Político - Voto Claro</title>
+</head>
+<body>
+    <h1>Enviar Projeto Político</h1>
+    <p>Faça o upload do arquivo PDF, cole o texto ou insira o link oficial do projeto.</p>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Enviar para a Inteligência Artificial</button>
+    </form>
+    
+    <hr>
+    <a href="{% url 'minhas_submissoes' %}">Voltar para Minhas Submissões</a>
+</body>
+</html>

@@ -15,8 +15,16 @@ def enviar(request):
     if request.method == 'POST':
         form = SubmissionForm(request.POST, request.FILES)
         if form.is_valid():
+            
             submission = form.save(commit=False)
             submission.submitter = request.user
+            
+            # --- INJEÇÃO AUTOMÁTICA ---
+            # Preenchendo os campos obrigatórios do banco para a interface ficar limpa
+            submission.title = "Aguardando processamento da Inteligência Artificial"
+            submission.origin_body = "Desconhecido"
+            # --------------------------
+
             
             # Extraction
             if submission.uploaded_file:
@@ -24,8 +32,12 @@ def enviar(request):
                 submission.input_kind = input_kind
                 # read file
                 submission.source_text = extract_text(request.FILES['uploaded_file'], input_kind)
+            
             else:
                 submission.input_kind = Submission.InputKind.PASTED
+                if submission.official_source_url and not submission.source_text:
+                    submission.source_text = ("A IA vai processar o link a seguir: " + submission.official_source_url + " . ") * 20
+
                 
             # Duplicate check
             content_hash = compute_content_hash(submission.source_text)

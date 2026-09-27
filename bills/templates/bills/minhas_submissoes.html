@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Minhas Submissões</title>
+</head>
+<body>
+    <h1>Minhas Submissões</h1>
+    {% if submissions %}
+        <ul>
+            {% for submission in submissions %}
+                <li>
+                    <strong><a href="{% url 'minhas_submissoes_detail' submission.pk %}">{{ submission.title }}</a></strong>
+                    <br>Status: {{ submission.get_status_display }}
+                    <br>Enviado em: {{ submission.created_at|date:"d/m/Y H:i" }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Você ainda não enviou nenhum projeto de lei.</p>
+    {% endif %}
+    <p><a href="{% url 'enviar' %}">Enviar novo projeto</a></p>
+</body>
+</html>

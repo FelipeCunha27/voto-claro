@@ -1,6 +1,6 @@
 from django.tasks import task
 from bills.models import Submission, AccessibleVersion, Bill
-from bills.adapters.openai_adapter import generate_accessible_version, TransientGenerationError, PermanentGenerationError
+from bills.adapters.gemini_adapter import generate_accessible_version, TransientGenerationError, PermanentGenerationError
 from django.db import transaction
 
 @task()
@@ -24,6 +24,7 @@ def generate_accessible_version_task(submission_id):
             bill = submission.bill
             if not bill:
                 bill = Bill.objects.create(
+                    slug=f"projeto-{str(submission.id)[:8]}",
                     title=submission.title,
                     origin_body=submission.origin_body,
                     bill_number=submission.bill_number,
@@ -41,16 +42,16 @@ def generate_accessible_version_task(submission_id):
                 who_is_affected=result.who_is_affected,
                 practical_changes=result.practical_changes,
                 points_of_attention=result.points_of_attention,
-                generator_reference="gpt-4o-2024-08-06",
+                generator_reference="gemini-3.6-flash",
             )
             submission.status = Submission.Status.GENERATED
             submission.save()
             
     except TransientGenerationError as e:
         submission.attempt_count += 1
+        submission.failure_reason = f"ERRO OCULTO INVESTIGAÇÃO: {str(e)}"
         if submission.attempt_count >= 3:
             submission.status = Submission.Status.FAILED
-            submission.failure_reason = f"Falha temporária persistente: {str(e)}"
         else:
             submission.status = Submission.Status.RECEIVED
         submission.save()
