@@ -4,7 +4,7 @@ from .search import search_bills
 from django.core.paginator import Paginator
 
 def panel_list(request):
-    qs = Bill.objects.filter(current_version__isnull=False, current_version__published_at__isnull=False).order_by('-first_published_at')
+    qs = Bill.objects.filter(submission__status='generated').distinct().order_by('-updated_at')
     
     q = request.GET.get('q')
     qs = search_bills(qs, q)
@@ -35,8 +35,7 @@ def panel_detail(request, slug):
     bill = get_object_or_404(
         Bill, 
         slug=slug, 
-        current_version__isnull=False, 
-        current_version__published_at__isnull=False
+        submission__status='generated'
     )
     return render(request, 'panel/detail.html', {'bill': bill})
 

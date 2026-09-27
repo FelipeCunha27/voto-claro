@@ -80,15 +80,15 @@
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T021 [P] [US2] Write failing tests for public `/` list view filtering and search logic in `src/voto_claro/panel/tests/test_views.py`.
-- [ ] T022 [P] [US2] Write failing tests for `/projeto/<slug>/` detail view (404 for unpublished, AI label rendering) in `src/voto_claro/panel/tests/test_views.py`.
+- [x] T021 [P] [US2] Write failing tests for public `/` list view filtering and search logic in `src/voto_claro/panel/tests/test_views.py`.
+- [x] T022 [P] [US2] Write failing tests for `/projeto/<slug>/` detail view (404 for unpublished, AI label rendering) in `src/voto_claro/panel/tests/test_views.py`.
 
 ### Implementation for User Story 2
 
-- [ ] T023 [P] [US2] Implement keyword search against title and summary in `src/voto_claro/panel/search.py`.
-- [ ] T024 [US2] Implement GET `/` public panel view with filters (theme, origin, date) and pagination in `src/voto_claro/panel/views.py`.
-- [ ] T025 [US2] Implement GET `/projeto/<slug>/` view displaying the 4 accessible fields and AI label in `src/voto_claro/panel/views.py`.
-- [ ] T026 [US2] Create accessible templates (WCAG 2.1 AA) for the panel listing and detail views, including empty states.
+- [x] T023 [P] [US2] Implement keyword search against title and summary in `src/voto_claro/panel/search.py`.
+- [x] T024 [US2] Implement GET `/` public panel view with filters (theme, origin, date) and pagination in `src/voto_claro/panel/views.py`.
+- [x] T025 [US2] Implement GET `/projeto/<slug>/` view displaying the 4 accessible fields and AI label in `src/voto_claro/panel/views.py`.
+- [x] T026 [US2] Create accessible templates (WCAG 2.1 AA) for the panel listing and detail views, including empty states.
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
