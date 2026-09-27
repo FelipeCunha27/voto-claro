@@ -34,7 +34,7 @@ def generate_accessible_version_task(submission_id):
                 submission.bill = bill
                 
             version_number = AccessibleVersion.objects.filter(bill=bill).count() + 1
-            AccessibleVersion.objects.create(
+            version = AccessibleVersion.objects.create(
                 bill=bill,
                 submission=submission,
                 version_number=version_number,
@@ -44,6 +44,8 @@ def generate_accessible_version_task(submission_id):
                 points_of_attention=result.points_of_attention,
                 generator_reference="gemini-3.6-flash",
             )
+            bill.current_version = version
+            bill.save(update_fields=['current_version'])
             submission.status = Submission.Status.GENERATED
             submission.save()
             

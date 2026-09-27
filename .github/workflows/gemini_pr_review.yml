@@ -54,7 +54,7 @@ jobs:
           
           SUAS TAREFAS:
           1. Code Review: Avalie o código contra as regras (TDD, Idioma, Segurança). Reprove se não houver testes para novas funcionalidades.
-          2. Geração de Changelog: Crie uma seção chamada "# 📝 Changelog Gerado" detalhando tecnicamente as alterações prontas para ir para a branch main.
+          2. Geração de Changelog: Crie uma seção chamada '# 📝 Changelog Gerado' detalhando tecnicamente as alterações prontas para ir para a branch main.
           '''
           
           response = client.models.generate_content(model='gemini-3.6-flash', contents=prompt)

@@ -1,10 +1,10 @@
 from django.shortcuts import render, get_object_or_404
-from bills.models import Bill, Theme
+from bills.models import Bill, Submission, Theme
 from .search import search_bills
 from django.core.paginator import Paginator
 
 def panel_list(request):
-    qs = Bill.objects.filter(current_version__isnull=False, current_version__published_at__isnull=False).order_by('-first_published_at')
+    qs = Bill.objects.filter(submission__status=Submission.Status.GENERATED).distinct().order_by('-updated_at')
     
     q = request.GET.get('q')
     qs = search_bills(qs, q)
@@ -35,8 +35,7 @@ def panel_detail(request, slug):
     bill = get_object_or_404(
         Bill, 
         slug=slug, 
-        current_version__isnull=False, 
-        current_version__published_at__isnull=False
+        submission__status=Submission.Status.GENERATED
     )
     return render(request, 'panel/detail.html', {'bill': bill})
 
