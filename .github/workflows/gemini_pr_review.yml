@@ -57,7 +57,7 @@ jobs:
           2. Geração de Changelog: Crie uma seção chamada '# 📝 Changelog Gerado' detalhando tecnicamente as alterações prontas para ir para a branch main.
           '''
           
-          models_to_try = ["gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.8-flash"]
+          models_to_try = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.8-flash']
           response = None
           
           for model_name in models_to_try:
@@ -73,9 +73,9 @@ jobs:
           if response:
               report_text = response.text
           else:
-              report_text = "❌ **Tech Lead Offline:** Todos os modelos da API do Gemini (3.5, 3.6 e 3.8) estão congestionados (Erro 503). O merge deste PR precisará ser revisado manualmente ou retentado mais tarde."
+              report_text = '❌ **Tech Lead Offline:** Todos os modelos da API do Gemini (3.5, 3.6 e 3.8) estão congestionados (Erro 503). O merge deste PR precisará ser revisado manualmente ou retentado mais tarde.'
           
-          with open("review_report.md", "w") as f:
+          with open('review_report.md', 'w') as f:
               f.write(report_text)
           "
           
