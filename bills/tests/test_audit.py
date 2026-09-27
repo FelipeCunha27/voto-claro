@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
-# Model não existe ainda, vai falhar no import (Fase Red perfeita)
+
 from bills.models import AuditEntry
 
 User = get_user_model()
@@ -31,7 +31,7 @@ class TestAuditEntryAppendOnly(TestCase):
             reason="Bad formatting"
         )
         
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValidationError):
             entry.delete()
         
         self.assertTrue(AuditEntry.objects.filter(id=entry.id).exists())
@@ -46,7 +46,7 @@ class TestAuditEntryAppendOnly(TestCase):
         
         entry.reason = "Modified reason"
         
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValidationError):
             entry.save()
             
         entry.refresh_from_db()

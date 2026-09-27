@@ -71,7 +71,10 @@ def minhas_submissoes_detail(request, pk):
     submission = get_object_or_404(Submission, pk=pk, submitter=request.user)
     return render(request, 'bills/minhas_submissoes_detail.html', {'submission': submission})
 
+from functools import wraps
+
 def curator_required(view_func):
+    @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect(f'/accounts/login/?next={request.path}')
@@ -81,18 +84,18 @@ def curator_required(view_func):
     return _wrapped_view
 
 @curator_required
-def curadoria_lista(request):
+def curation_list(request):
     versions = AccessibleVersion.objects.filter(review_state=AccessibleVersion.ReviewState.PENDING).select_related('bill').order_by('-generated_at')
-    return render(request, 'bills/curadoria_lista.html', {'versions': versions})
+    return render(request, 'bills/curation_list.html', {'versions': versions})
 
 @curator_required
-def curadoria_detalhe(request, pk):
+def curation_detail(request, pk):
     version = get_object_or_404(AccessibleVersion, pk=pk)
-    return render(request, 'bills/curadoria_detalhe.html', {'version': version})
+    return render(request, 'bills/curation_detail.html', {'version': version})
 
 @require_POST
 @curator_required
-def curadoria_aprovar(request, pk):
+def curation_approve(request, pk):
     submission = get_object_or_404(Submission, pk=pk)
     version = AccessibleVersion.objects.filter(submission=submission).first()
     if version:
@@ -110,11 +113,11 @@ def curadoria_aprovar(request, pk):
         bill=submission.bill,
         submission=submission
     )
-    return redirect('curadoria_lista')
+    return redirect('curation_list')
 
 @require_POST
 @curator_required
-def curadoria_editar(request, pk):
+def curation_edit(request, pk):
     submission = get_object_or_404(Submission, pk=pk)
     version = AccessibleVersion.objects.filter(submission=submission).first()
     if version:
@@ -124,11 +127,11 @@ def curadoria_editar(request, pk):
         version.points_of_attention = request.POST.get('points_of_attention', version.points_of_attention)
         version.edited_by_curator = True
         version.save()
-    return redirect('curadoria_detalhe', pk=pk)
+    return redirect('curation_detail', pk=pk)
 
 @require_POST
 @curator_required
-def curadoria_regerar(request, pk):
+def curation_regenerate(request, pk):
     submission = get_object_or_404(Submission, pk=pk)
     version = AccessibleVersion.objects.filter(submission=submission).first()
     AuditEntry.objects.create(
@@ -140,11 +143,11 @@ def curadoria_regerar(request, pk):
         reason=request.POST.get('reason', '')
     )
     generate_accessible_version_task.enqueue(str(submission.pk))
-    return redirect('curadoria_lista')
+    return redirect('curation_list')
 
 @require_POST
 @curator_required
-def curadoria_despublicar(request, pk):
+def curation_unpublish(request, pk):
     submission = get_object_or_404(Submission, pk=pk)
     version = AccessibleVersion.objects.filter(submission=submission).first()
     if version:
@@ -163,11 +166,11 @@ def curadoria_despublicar(request, pk):
         submission=submission,
         reason=request.POST.get('reason', '')
     )
-    return redirect('curadoria_lista')
+    return redirect('curation_list')
 
 @require_POST
 @curator_required
-def curadoria_rejeitar(request, pk):
+def curation_reject(request, pk):
     submission = get_object_or_404(Submission, pk=pk)
     version = AccessibleVersion.objects.filter(submission=submission).first()
     if version:
@@ -187,11 +190,11 @@ def curadoria_rejeitar(request, pk):
         submission=submission,
         reason=reason
     )
-    return redirect('curadoria_lista')
+    return redirect('curation_list')
 
 @require_POST
 @curator_required
-def curadoria_resolver_sinalizacao(request, pk):
+def curation_resolve_flag(request, pk):
     flag = get_object_or_404(Flag, pk=pk)
     flag.state = Flag.State.RESOLVED
     flag.resolved_at = timezone.now()
@@ -206,11 +209,11 @@ def curadoria_resolver_sinalizacao(request, pk):
         bill=flag.version.bill,
         reason=f"Flag {flag.id} resolved: {flag.resolution_note}"
     )
-    return redirect('curadoria_detalhe', pk=flag.version.pk)
+    return redirect('curation_detail', pk=flag.version.pk)
 
 @require_POST
 @curator_required
-def curadoria_projeto_aviso(request, slug):
+def curation_bill_notice_override(request, slug):
     bill = get_object_or_404(Bill, slug=slug)
     bill.review_notice_override = request.POST.get('override_type', Bill.ReviewNoticeOverride.AUTO)
     bill.save()
@@ -221,4 +224,4 @@ def curadoria_projeto_aviso(request, slug):
         bill=bill,
         reason=f"Override set to {bill.review_notice_override}"
     )
-    return redirect('curadoria_lista')
+    return redirect('curation_list')

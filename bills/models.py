@@ -178,8 +178,8 @@ class AuditEntry(models.Model):
 
     def save(self, *args, **kwargs):
         if not self._state.adding:
-            raise Exception("AuditEntry is append-only and cannot be updated.")
+            raise ValidationError("AuditEntry is append-only and cannot be updated.")
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise Exception("AuditEntry cannot be deleted.")
+        raise ValidationError("AuditEntry cannot be deleted.")

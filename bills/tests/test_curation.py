@@ -25,12 +25,12 @@ class TestCuratorAccessControl(TestCase):
     def test_approve_action_denied_for_normal_user(self):
         self.client.force_login(self.normal_user)
         # Assumindo que a view de aprovar requer POST e uuid
-        url = reverse('curadoria_aprovar', kwargs={'pk': self.submission.id})
+        url = reverse('curation_approve', kwargs={'pk': self.submission.id})
         response = self.client.post(url)
         self.assertEqual(response.status_code, 403)
 
     def test_approve_action_allowed_for_curator(self):
         self.client.force_login(self.curator_user)
-        url = reverse('curadoria_aprovar', kwargs={'pk': self.submission.id})
+        url = reverse('curation_approve', kwargs={'pk': self.submission.id})
         response = self.client.post(url)
         self.assertIn(response.status_code, [200, 302])
