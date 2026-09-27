@@ -21,6 +21,12 @@
                     <p>⚠️ Este resumo foi gerado por Inteligência Artificial para facilitar a compreensão e pode não refletir todas as nuances jurídicas do texto original.</p>
                 </div>
                 {% endif %}
+                
+                {% if bill.has_pending_review %}
+                <div role="alert" aria-live="polite" class="review-notice" style="border: 2px solid orange; padding: 10px; margin-top: 10px;">
+                    <p>⚠️ Este resumo está pendente de revisão. Uma ou mais inconsistências foram sinalizadas por nossos revisores e o texto pode passar por ajustes em breve.</p>
+                </div>
+                {% endif %}
             </header>
 
             {% if bill.current_version %}

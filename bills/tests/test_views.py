@@ -31,12 +31,12 @@ class ViewsIntegrationTests(TestCase):
         valid_source_text = "Projeto de lei válido com texto em português que supera os quinhentos caracteres. " * 10
         
         response = self.client.post(reverse("enviar"), {
-            "title": "Test Bill",
-            "origin_body": "Camara",
+            
+            
             "source_text": valid_source_text,
         })
         
-        submission = Submission.objects.filter(title="Test Bill").first()
+        submission = Submission.objects.filter(title="Aguardando processamento da Inteligência Artificial").first()
         self.assertIsNotNone(submission)
         self.assertEqual(submission.input_kind, Submission.InputKind.PASTED)
         self.assertEqual(response.status_code, 302)

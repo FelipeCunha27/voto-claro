@@ -31,6 +31,19 @@ class Bill(models.Model):
     review_notice_override = models.CharField(max_length=20, choices=ReviewNoticeOverride.choices, default=ReviewNoticeOverride.AUTO)
     first_published_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    @property
+    def has_pending_review(self):
+        if self.review_notice_override == self.ReviewNoticeOverride.FORCED_ON:
+            return True
+        if self.review_notice_override == self.ReviewNoticeOverride.FORCED_OFF:
+            return False
+        if self.current_version:
+            return self.current_version.flag_set.filter(
+                reporter__isnull=False, 
+                state=Flag.State.OPEN
+            ).exists()
+        return False
 
 class Submission(models.Model):
     class Status(models.TextChoices):
@@ -129,6 +142,9 @@ class Flag(models.Model):
     resolved_at = models.DateTimeField(null=True, blank=True)
     resolved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Flag on {self.version.bill.slug} - {self.get_state_display()}"
 
 class AuditEntry(models.Model):
     class Action(models.TextChoices):
