@@ -57,7 +57,7 @@ jobs:
           2. Geração de Changelog: Crie uma seção chamada '# 📝 Changelog Gerado' detalhando tecnicamente as alterações prontas para ir para a branch main.
           '''
           
-          response = client.models.generate_content(model='gemini-3.6-flash', contents=prompt)
+          response = client.models.generate_content(model='gemini-3.5-flash', contents=prompt)
           
           with open('review_report.md', 'w') as f:
               f.write(response.text)
