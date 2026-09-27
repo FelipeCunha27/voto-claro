@@ -130,6 +130,9 @@ class AccessibleVersion(models.Model):
 
     class Meta:
         unique_together = ('bill', 'version_number')
+        indexes = [
+            models.Index(fields=['review_state', 'generated_at']),
+        ]
 
 
 class Flag(models.Model):

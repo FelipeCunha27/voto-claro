@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Fila de Curadoria</h2>
+<ul>
+{% for version in versions %}
+    <li>
+        <a href="{% url 'curadoria_detalhe' version.pk %}">{{ version.bill }} - {{ version.summary|truncatechars:50 }}</a>
+    </li>
+{% empty %}
+    <li>Nenhum projeto pendente de revisão.</li>
+{% endfor %}
+</ul>
+{% endblock %}

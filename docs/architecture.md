@@ -8,3 +8,7 @@ A arquitetura conta com paginação, busca (`search_bills`) e visualização des
 ## Fluxo de Sinalização (User Story 3)
 A aplicação permite que usuários comparem a versão original (rota `panel_original`) e enviem sinalizações de erros na tradução via formulário (rota `panel_sinalizar`).
 O model `Bill` agora possui a propriedade dinâmica `has_pending_review` que informa à interface se o projeto atual deve renderizar um aviso visual vermelho alertando o leitor de que a tradução foi contestada.
+
+## Painel de Curadoria (User Story 4)
+O sistema possui uma interface administrativa customizada (app `bills`, rotas `/curadoria/`) restrita a usuários com a flag `is_curator=True`.
+A arquitetura força auditoria `append-only` via o modelo `AuditEntry`, impedindo edição e exclusão no banco, garantindo o rastreamento integral das ações de curadoria, como aprovação, edição, despublicação e rejeição de projetos e resolução de denúncias (flags).

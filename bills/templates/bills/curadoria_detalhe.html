@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Revisão do Projeto</h2>
+<p>{{ version.summary }}</p>
+
+<form method="post" action="{% url 'curadoria_aprovar' version.pk %}">
+    {% csrf_token %}
+    <button type="submit">Aprovar</button>
+</form>
+
+<form method="post" action="{% url 'curadoria_rejeitar' version.pk %}">
+    {% csrf_token %}
+    <textarea name="reason" placeholder="Motivo da rejeição"></textarea>
+    <button type="submit">Rejeitar</button>
+</form>
+
+<form method="post" action="{% url 'curadoria_regerar' version.pk %}">
+    {% csrf_token %}
+    <textarea name="reason" placeholder="Instruções para nova geração (opcional)"></textarea>
+    <button type="submit">Regerar com IA</button>
+</form>
+
+<form method="post" action="{% url 'curadoria_editar' version.pk %}">
+    {% csrf_token %}
+    <textarea name="summary">{{ version.summary }}</textarea>
+    <button type="submit">Salvar Edição</button>
+</form>
+
+<form method="post" action="{% url 'curadoria_despublicar' version.pk %}">
+    {% csrf_token %}
+    <textarea name="reason" placeholder="Motivo da despublicação"></textarea>
+    <button type="submit">Despublicar</button>
+</form>
+{% endblock %}

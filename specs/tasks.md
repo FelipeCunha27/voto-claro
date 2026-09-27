@@ -123,16 +123,16 @@
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T032 [P] [US4] Write failing tests for curator access control (`is_curator`) on all actions in `src/voto_claro/bills/tests/test_curation.py`.
-- [ ] T033 [P] [US4] Write failing tests for append-only `AuditEntry` logging in `src/voto_claro/bills/tests/test_audit.py`.
+- [x] T032 [P] [US4] Write failing tests for curator access control (`is_curator`) on all actions in `src/voto_claro/bills/tests/test_curation.py`.
+- [x] T033 [P] [US4] Write failing tests for append-only `AuditEntry` logging in `src/voto_claro/bills/tests/test_audit.py`.
 
 ### Implementation for User Story 4
 
-- [ ] T034 [P] [US4] Create `AuditEntry` model in `src/voto_claro/bills/models.py`. Constraints: append-only, `action` enum, `actor` FK nullable, `reason` text required for unpublished/rejected.
-- [ ] T035 [US4] Implement GET `/curadoria/` and `/curadoria/<uuid>/` queue views for curators in `src/voto_claro/bills/views.py`.
-- [ ] T036 [US4] Implement POST actions (`aprovar`, `editar`, `regerar`, `despublicar`, `rejeitar`) appending to `AuditEntry` in `src/voto_claro/bills/views.py`.
-- [ ] T037 [US4] Implement flag resolution POST `/curadoria/sinalizacoes/<uuid>/resolver/` in `src/voto_claro/bills/views.py`.
-- [ ] T038 [US4] Implement review notice override POST `/curadoria/projeto/<slug>/aviso/` in `src/voto_claro/bills/views.py`.
+- [x] T034 [P] [US4] Create `AuditEntry` model in `src/voto_claro/bills/models.py`. Constraints: append-only, `action` enum, `actor` FK nullable, `reason` text required for unpublished/rejected.
+- [x] T035 [US4] Implement GET `/curadoria/` and `/curadoria/<uuid>/` queue views for curators in `src/voto_claro/bills/views.py`.
+- [x] T036 [US4] Implement POST actions (`aprovar`, `editar`, `regerar`, `despublicar`, `rejeitar`) appending to `AuditEntry` in `src/voto_claro/bills/views.py`.
+- [x] T037 [US4] Implement flag resolution POST `/curadoria/sinalizacoes/<uuid>/resolver/` in `src/voto_claro/bills/views.py`.
+- [x] T038 [US4] Implement review notice override POST `/curadoria/projeto/<slug>/aviso/` in `src/voto_claro/bills/views.py`.
 
 ---
 
@@ -140,9 +140,9 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T039 Update `docs/architecture.md`, `docs/database.md`, and `docs/admin.md` with new features and models.
-- [ ] T040 Security Review: Verify LGPD compliance (no public PII) and CSRF protection on all forms.
-- [ ] T041 Code cleanup, review indexes according to data-model.md.
+- [x] T039 Update `docs/architecture.md`, `docs/database.md`, and `docs/admin.md` with new features and models.
+- [x] T040 Security Review: Verify LGPD compliance (no public PII) and CSRF protection on all forms.
+- [x] T041 Code cleanup, review indexes according to data-model.md.
 
 ---
 
