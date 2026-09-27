@@ -101,3 +101,60 @@ class PublicPanelViewsTest(TestCase):
         """
         response = self.client.get(f"/projeto/{self.bill_failed.slug}/")
         self.assertEqual(response.status_code, 404)
+
+    def test_search_filters_by_title(self):
+        """
+        Garante que a busca pelo parâmetro 'q' filtra os projetos corretamente.
+        """
+        bill_search = Bill.objects.create(
+            slug="projeto-busca-especifica",
+            title="Projeto Busca Especifica",
+            origin_body="Senado",
+            bill_number="999",
+            bill_year=2024
+        )
+        Submission.objects.create(
+            submitter=self.user,
+            title="Projeto Busca Especifica",
+            origin_body="Senado",
+            source_text="Texto",
+            input_kind=Submission.InputKind.PASTED,
+            content_hash="hash999",
+            status=Submission.Status.GENERATED,
+            bill=bill_search
+        )
+        
+        response = self.client.get("/?q=Especifica")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Busca Especifica")
+        # O projeto gerado padrão não deve aparecer na busca
+        self.assertNotContains(response, self.bill_generated.title)
+
+    def test_pagination_is_applied(self):
+        """
+        Garante que a lista é paginada em 20 itens.
+        """
+        for i in range(25):
+            b = Bill.objects.create(
+                slug=f"projeto-paginado-{i}",
+                title=f"Projeto Paginado {i}",
+                origin_body="Camara",
+                bill_number=str(i),
+                bill_year=2024
+            )
+            Submission.objects.create(
+                submitter=self.user,
+                title=f"Projeto Paginado {i}",
+                origin_body="Camara",
+                source_text="Texto",
+                input_kind=Submission.InputKind.PASTED,
+                content_hash=f"hash-pag-{i}",
+                status=Submission.Status.GENERATED,
+                bill=b
+            )
+            
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        # O Paginator está configurado para 20
+        self.assertTrue(response.context['page_obj'].has_next())
+        self.assertEqual(len(response.context['page_obj']), 20)
