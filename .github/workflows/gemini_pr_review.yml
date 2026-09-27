@@ -27,41 +27,7 @@ jobs:
       - name: Tech Lead Review & Changelog Generation
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: |
-          python -c "
-          import os
-          from google import genai
-
-          client = genai.Client(api_key=os.environ['GEMINI_API_KEY'])
-          
-          try:
-              with open('pr_diff.txt', 'r') as f:
-                  diff_content = f.read()
-              with open('GEMINI.md', 'r') as f:
-                  rules_content = f.read()
-          except Exception as e:
-              diff_content = f'Erro: {e}'
-              rules_content = ''
-
-          prompt = f'''Aja como o Tech Lead do Voto Claro.
-          Analise o Pull Request atual.
-          
-          REGRAS DO PROJETO:
-          {rules_content}
-          
-          CÓDIGO MODIFICADO (DIFF):
-          {diff_content}
-          
-          SUAS TAREFAS:
-          1. Code Review: Avalie o código contra as regras (TDD, Idioma, Segurança). Reprove se não houver testes para novas funcionalidades.
-          2. Geração de Changelog: Crie uma seção chamada '# 📝 Changelog Gerado' detalhando tecnicamente as alterações prontas para ir para a branch main.
-          '''
-          
-          response = client.models.generate_content(model='gemini-3.5-flash', contents=prompt)
-          
-          with open('review_report.md', 'w') as f:
-              f.write(response.text)
-          "
+        run: python scripts/github_review.py
           
       - name: Postar Code Review Automático
         uses: actions/github-script@v7

@@ -1,11 +1,11 @@
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.core.exceptions import ValidationError
-from django.http import HttpResponseForbidden
+from django.core.exceptions import ValidationError, PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 
 from bills.forms import SubmissionForm
-from bills.models import Bill, Submission
+from bills.models import Bill, Submission, AccessibleVersion, AuditEntry, Flag
 from bills.services.extraction import extract_text
 from bills.services.screening import compute_content_hash
 from bills.tasks import generate_accessible_version_task
@@ -71,41 +71,157 @@ def minhas_submissoes_detail(request, pk):
     submission = get_object_or_404(Submission, pk=pk, submitter=request.user)
     return render(request, 'bills/minhas_submissoes_detail.html', {'submission': submission})
 
-def is_curator(user):
-    return user.is_authenticated and user.is_curator
+from functools import wraps
 
-@user_passes_test(is_curator)
-def curadoria_lista(request):
-    return render(request, 'bills/curadoria_lista.html')
+def curator_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect(f'/accounts/login/?next={request.path}')
+        if not getattr(request.user, 'is_curator', False):
+            raise PermissionDenied
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
 
-@user_passes_test(is_curator)
-def curadoria_detalhe(request, pk):
-    return render(request, 'bills/curadoria_detalhe.html')
+@curator_required
+def curation_list(request):
+    versions = AccessibleVersion.objects.filter(review_state=AccessibleVersion.ReviewState.PENDING).select_related('bill').order_by('-generated_at')
+    return render(request, 'bills/curation_list.html', {'versions': versions})
 
-@user_passes_test(is_curator)
-def curadoria_aprovar(request, pk):
-    return redirect('curadoria_lista')
+@curator_required
+def curation_detail(request, pk):
+    version = get_object_or_404(AccessibleVersion, pk=pk)
+    return render(request, 'bills/curation_detail.html', {'version': version})
 
-@user_passes_test(is_curator)
-def curadoria_editar(request, pk):
-    return redirect('curadoria_lista')
+@require_POST
+@curator_required
+def curation_approve(request, pk):
+    submission = get_object_or_404(Submission, pk=pk)
+    version = AccessibleVersion.objects.filter(submission=submission).first()
+    if version:
+        version.review_state = AccessibleVersion.ReviewState.APPROVED
+        version.published_at = timezone.now()
+        version.save()
+    
+    submission.status = Submission.Status.PUBLISHED
+    submission.save()
+    
+    AuditEntry.objects.create(
+        action=AuditEntry.Action.APPROVED,
+        actor=request.user,
+        version=version,
+        bill=submission.bill,
+        submission=submission
+    )
+    return redirect('curation_list')
 
-@user_passes_test(is_curator)
-def curadoria_regerar(request, pk):
-    return redirect('curadoria_lista')
+@require_POST
+@curator_required
+def curation_edit(request, pk):
+    submission = get_object_or_404(Submission, pk=pk)
+    version = AccessibleVersion.objects.filter(submission=submission).first()
+    if version:
+        version.summary = request.POST.get('summary', version.summary)
+        version.who_is_affected = request.POST.get('who_is_affected', version.who_is_affected)
+        version.practical_changes = request.POST.get('practical_changes', version.practical_changes)
+        version.points_of_attention = request.POST.get('points_of_attention', version.points_of_attention)
+        version.edited_by_curator = True
+        version.save()
+    return redirect('curation_detail', pk=pk)
 
-@user_passes_test(is_curator)
-def curadoria_despublicar(request, pk):
-    return redirect('curadoria_lista')
+@require_POST
+@curator_required
+def curation_regenerate(request, pk):
+    submission = get_object_or_404(Submission, pk=pk)
+    version = AccessibleVersion.objects.filter(submission=submission).first()
+    AuditEntry.objects.create(
+        action=AuditEntry.Action.REGENERATED,
+        actor=request.user,
+        version=version,
+        bill=submission.bill,
+        submission=submission,
+        reason=request.POST.get('reason', '')
+    )
+    generate_accessible_version_task.enqueue(str(submission.pk))
+    return redirect('curation_list')
 
-@user_passes_test(is_curator)
-def curadoria_rejeitar(request, pk):
-    return redirect('curadoria_lista')
+@require_POST
+@curator_required
+def curation_unpublish(request, pk):
+    submission = get_object_or_404(Submission, pk=pk)
+    version = AccessibleVersion.objects.filter(submission=submission).first()
+    if version:
+        version.unpublished_at = timezone.now()
+        version.review_state = AccessibleVersion.ReviewState.PENDING
+        version.save()
+    
+    submission.status = Submission.Status.UNPUBLISHED
+    submission.save()
+    
+    AuditEntry.objects.create(
+        action=AuditEntry.Action.UNPUBLISHED,
+        actor=request.user,
+        version=version,
+        bill=submission.bill,
+        submission=submission,
+        reason=request.POST.get('reason', '')
+    )
+    return redirect('curation_list')
 
-@user_passes_test(is_curator)
-def curadoria_resolver_sinalizacao(request, pk):
-    return redirect('curadoria_lista')
+@require_POST
+@curator_required
+def curation_reject(request, pk):
+    submission = get_object_or_404(Submission, pk=pk)
+    version = AccessibleVersion.objects.filter(submission=submission).first()
+    if version:
+        version.review_state = AccessibleVersion.ReviewState.REJECTED
+        version.save()
+    
+    submission.status = Submission.Status.REJECTED
+    reason = request.POST.get('reason', '')
+    submission.rejection_reason = reason
+    submission.save()
+    
+    AuditEntry.objects.create(
+        action=AuditEntry.Action.REJECTED,
+        actor=request.user,
+        version=version,
+        bill=submission.bill,
+        submission=submission,
+        reason=reason
+    )
+    return redirect('curation_list')
 
-@user_passes_test(is_curator)
-def curadoria_projeto_aviso(request, slug):
-    return redirect('curadoria_lista')
+@require_POST
+@curator_required
+def curation_resolve_flag(request, pk):
+    flag = get_object_or_404(Flag, pk=pk)
+    flag.state = Flag.State.RESOLVED
+    flag.resolved_at = timezone.now()
+    flag.resolved_by = request.user
+    flag.resolution_note = request.POST.get('resolution_note', '')
+    flag.save()
+    
+    AuditEntry.objects.create(
+        action=AuditEntry.Action.FLAG_RESOLVED,
+        actor=request.user,
+        version=flag.version,
+        bill=flag.version.bill,
+        reason=f"Flag {flag.id} resolved: {flag.resolution_note}"
+    )
+    return redirect('curation_detail', pk=flag.version.pk)
+
+@require_POST
+@curator_required
+def curation_bill_notice_override(request, slug):
+    bill = get_object_or_404(Bill, slug=slug)
+    bill.review_notice_override = request.POST.get('override_type', Bill.ReviewNoticeOverride.AUTO)
+    bill.save()
+    
+    AuditEntry.objects.create(
+        action=AuditEntry.Action.NOTICE_OVERRIDDEN,
+        actor=request.user,
+        bill=bill,
+        reason=f"Override set to {bill.review_notice_override}"
+    )
+    return redirect('curation_list')
