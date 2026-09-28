@@ -80,7 +80,13 @@ class Submission(models.Model):
 
     def clean(self):
         if self.source_text:
-            pass # Limites de texto e idioma desativados para testes/demo
+            if len(self.source_text) < 500 or len(self.source_text) > 50000:
+                raise ValidationError("O texto deve ter entre 500 e 50.000 caracteres.")
+            
+            # Validação simples de português baseada em palavras-chave
+            pt_keywords = [' o ', ' a ', ' os ', ' as ', ' um ', ' uma ', ' de ', ' do ', ' da ', ' que ', ' para ']
+            if not any(kw in self.source_text.lower() for kw in pt_keywords):
+                raise ValidationError("O texto deve estar em português.")
 
         if self.input_kind in [self.InputKind.PDF, self.InputKind.DOCX]:
             if not self.uploaded_file:
@@ -94,7 +100,9 @@ class Submission(models.Model):
 
         if self._state.adding and getattr(self, "submitter_id", None):
             yesterday = timezone.now() - timedelta(days=1)
-            recent_count = 0 # Limite de submissões desativado
+            recent_count = Submission.objects.filter(submitter=self.submitter, created_at__gte=yesterday).count()
+            if recent_count >= 5:
+                raise ValidationError("Limite de submissões excedido. Você pode enviar até 5 projetos a cada 24 horas.")
 
 class AccessibleVersion(models.Model):
     class ReviewState(models.TextChoices):

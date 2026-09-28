@@ -1,10 +1,5 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Revisão - Curadoria</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block content %}
     <h2>Revisão do Projeto</h2>
     
     <h3>Resumo</h3>
@@ -21,28 +16,27 @@
 
     <hr>
     <h3>Ações do Curador</h3>
-    <div style="display: flex; gap: 10px;">
+    <div>
         <form method="post" action="{% url 'curation_approve' version.submission.pk %}">
             {% csrf_token %}
-            <button type="submit" style="background-color: green; color: white;">Aprovar e Publicar</button>
+            <button type="submit">Aprovar e Publicar</button>
         </form>
 
         <form method="post" action="{% url 'curation_regenerate' version.submission.pk %}">
             {% csrf_token %}
-            <button type="submit" style="background-color: orange; color: white;">Regerar (Devolver para IA)</button>
+            <button type="submit">Regerar (Devolver para IA)</button>
         </form>
     </div>
     
     <br>
     
-    <div style="display: flex; gap: 10px; margin-top: 10px;">
+    <div>
         <form method="post" action="{% url 'curation_reject' version.submission.pk %}">
             {% csrf_token %}
             <input type="text" name="reason" placeholder="Motivo da rejeição" required>
-            <button type="submit" style="background-color: red; color: white;">Rejeitar Definitivamente</button>
+            <button type="submit">Rejeitar Definitivamente</button>
         </form>
     </div>
 
     <p><a href="{% url 'curation_list' %}">Voltar para a Fila de Curadoria</a></p>
-</body>
-</html>
+{% endblock %}

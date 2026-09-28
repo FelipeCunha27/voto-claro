@@ -68,54 +68,31 @@ def generate_accessible_version(source_text: str, themes: list[str]) -> Generati
     {source_text}
     '''
     
-    
-    
-    import time
-    modelos_fallback = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.8-flash']
-    ultimo_erro = None
-    
-    # Vamos tentar o loop inteiro 3 vezes antes de desistir
-    for tentativa in range(3):
-        for modelo in modelos_fallback:
-            try:
-                response = client.models.generate_content(
-                    model=modelo,
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
-                        response_mime_type="application/json",
-                        response_schema=GenerationResult,
-                        temperature=0.2,
-                    ),
-                )
-                
-                if not response.text:
-                    raise PermanentGenerationError("A IA retornou uma resposta vazia.")
-                    
-                parsed_data = json.loads(response.text)
-                result = GenerationResult(**parsed_data)
-                
-                if not result.is_legislative_text:
-                    raise PermanentGenerationError("O documento enviado não é um texto legislativo válido.")
-                    
-                return result
-                
-            except APIError as e:
-                ultimo_erro = e
-                if "429" in str(e) or "503" in str(e):
-                    print(f"Modelo {modelo} lotado (503). Tentando o próximo...")
-                    time.sleep(1) # Espera 1s para não bater de frente com o limitador
-                    continue
-                raise PermanentGenerationError(str(e))
-            except Exception as e:
-                ultimo_erro = e
-                break
-                
-        print(f"Rodada {tentativa+1} falhou. Aguardando 5 segundos para a IA respirar...")
-        time.sleep(5)
-
-    # Se saiu do loop, todos falharam várias vezes
-    if ultimo_erro:
-        if "429" in str(ultimo_erro) or "503" in str(ultimo_erro):
-            raise TransientGenerationError(str(ultimo_erro))
-        raise PermanentGenerationError(str(ultimo_erro))
-
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=GenerationResult,
+                temperature=0.2,
+            ),
+        )
+        
+        if not response.text:
+            raise PermanentGenerationError("A IA retornou uma resposta vazia.")
+            
+        parsed_data = json.loads(response.text)
+        result = GenerationResult(**parsed_data)
+        
+        if not result.is_legislative_text:
+            raise PermanentGenerationError("O documento enviado não é um texto legislativo válido.")
+            
+        return result
+        
+    except APIError as e:
+        if "429" in str(e) or "503" in str(e):
+            raise TransientGenerationError(str(e))
+        raise PermanentGenerationError(str(e))
+    except Exception as e:
+        raise PermanentGenerationError(str(e))
