@@ -1,34 +1,48 @@
-{% extends 'base.html' %}
-{% block content %}
-<h2>Revisão do Projeto</h2>
-<p>{{ version.summary }}</p>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Revisão - Curadoria</title>
+</head>
+<body>
+    <h2>Revisão do Projeto</h2>
+    
+    <h3>Resumo</h3>
+    <p>{{ version.summary }}</p>
+    
+    <h3>Quem é Afetado</h3>
+    <p>{{ version.who_is_affected }}</p>
+    
+    <h3>Mudanças Práticas</h3>
+    <p>{{ version.practical_changes }}</p>
+    
+    <h3>Pontos de Atenção</h3>
+    <p>{{ version.points_of_attention }}</p>
 
-<form method="post" action="{% url 'curation_approve' version.pk %}">
-    {% csrf_token %}
-    <button type="submit">Aprovar</button>
-</form>
+    <hr>
+    <h3>Ações do Curador</h3>
+    <div style="display: flex; gap: 10px;">
+        <form method="post" action="{% url 'curation_approve' version.submission.pk %}">
+            {% csrf_token %}
+            <button type="submit" style="background-color: green; color: white;">Aprovar e Publicar</button>
+        </form>
 
-<form method="post" action="{% url 'curation_reject' version.pk %}">
-    {% csrf_token %}
-    <textarea name="reason" placeholder="Motivo da rejeição"></textarea>
-    <button type="submit">Rejeitar</button>
-</form>
+        <form method="post" action="{% url 'curation_regenerate' version.submission.pk %}">
+            {% csrf_token %}
+            <button type="submit" style="background-color: orange; color: white;">Regerar (Devolver para IA)</button>
+        </form>
+    </div>
+    
+    <br>
+    
+    <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <form method="post" action="{% url 'curation_reject' version.submission.pk %}">
+            {% csrf_token %}
+            <input type="text" name="reason" placeholder="Motivo da rejeição" required>
+            <button type="submit" style="background-color: red; color: white;">Rejeitar Definitivamente</button>
+        </form>
+    </div>
 
-<form method="post" action="{% url 'curation_regenerate' version.pk %}">
-    {% csrf_token %}
-    <textarea name="reason" placeholder="Instruções para nova geração (opcional)"></textarea>
-    <button type="submit">Regerar com IA</button>
-</form>
-
-<form method="post" action="{% url 'curation_edit' version.pk %}">
-    {% csrf_token %}
-    <textarea name="summary">{{ version.summary }}</textarea>
-    <button type="submit">Salvar Edição</button>
-</form>
-
-<form method="post" action="{% url 'curation_unpublish' version.pk %}">
-    {% csrf_token %}
-    <textarea name="reason" placeholder="Motivo da despublicação"></textarea>
-    <button type="submit">Despublicar</button>
-</form>
-{% endblock %}
+    <p><a href="{% url 'curation_list' %}">Voltar para a Fila de Curadoria</a></p>
+</body>
+</html>
