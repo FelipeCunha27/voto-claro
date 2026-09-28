@@ -133,7 +133,12 @@ def curation_edit(request, pk):
 @curator_required
 def curation_regenerate(request, pk):
     submission = get_object_or_404(Submission, pk=pk)
-    version = AccessibleVersion.objects.filter(submission=submission).first()
+    version = AccessibleVersion.objects.filter(submission=submission).order_by('-version_number').first()
+    
+    if version:
+        version.review_state = AccessibleVersion.ReviewState.SUPERSEDED
+        version.save()
+        
     AuditEntry.objects.create(
         action=AuditEntry.Action.REGENERATED,
         actor=request.user,

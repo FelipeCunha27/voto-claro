@@ -32,3 +32,18 @@ class GeminiAdapterContractTests(TestCase):
 
         with self.assertRaisesMessage(PermanentGenerationError, "O documento enviado não é um texto legislativo válido."):
             generate_accessible_version("Receita de bolo", self.themes)
+
+    @patch('bills.adapters.gemini_adapter.client.models.generate_content')
+    def test_transient_error(self, mock_generate):
+        from google.genai.errors import APIError
+        # Mocking an APIError requires passing a message or similar, we can mock the exception string
+        class MockAPIError(APIError):
+            def __init__(self, message):
+                self.message = message
+            def __str__(self):
+                return self.message
+
+        mock_generate.side_effect = MockAPIError("429 Too Many Requests")
+
+        with self.assertRaisesMessage(TransientGenerationError, "429"):
+            generate_accessible_version(self.valid_text, self.themes)

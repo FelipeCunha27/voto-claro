@@ -1,3 +1,4 @@
+import unittest
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase
@@ -15,6 +16,7 @@ class SubmissionModelTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="password")
         
+    
     def test_submission_rate_limit(self):
         for _ in range(5):
             Submission.objects.create(
@@ -38,6 +40,8 @@ class SubmissionModelTest(TestCase):
         with self.assertRaisesMessage(ValidationError, "Limite de submissões excedido"):
             submission.clean()
 
+
+    
     def test_source_text_size_limits(self):
         # Too small
         submission1 = Submission(
@@ -63,6 +67,7 @@ class SubmissionModelTest(TestCase):
         with self.assertRaisesMessage(ValidationError, "O texto deve ter entre"):
             submission2.clean()
 
+    
     def test_portuguese_language_validation(self):
         # English text
         english_text = "This is an english text that has more than five hundred characters. " * 10

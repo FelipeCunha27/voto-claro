@@ -25,7 +25,7 @@
     {% endif %}
 
     <h2>Resumo Gerado pela IA</h2>
-    {% with version=submission.accessibleversion_set.first %}
+    {% with version=submission.bill.current_version|default:submission.accessibleversion_set.first %}
         {% if version %}
             <p>{{ version.summary }}</p>
             <h3>Quem é Afetado</h3>

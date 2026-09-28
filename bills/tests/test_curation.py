@@ -34,3 +34,25 @@ class TestCuratorAccessControl(TestCase):
         url = reverse('curation_approve', kwargs={'pk': self.submission.id})
         response = self.client.post(url)
         self.assertIn(response.status_code, [200, 302])
+
+    def test_curation_regenerate_marks_superseded(self):
+        from bills.models import AccessibleVersion, Bill
+        self.client.force_login(self.curator_user)
+        bill = Bill.objects.create(slug="test", title="Test")
+        self.submission.bill = bill
+        self.submission.save()
+        version = AccessibleVersion.objects.create(
+            bill=bill,
+            submission=self.submission,
+            version_number=1,
+            summary="A summary",
+            who_is_affected="",
+            practical_changes="",
+            points_of_attention="",
+            review_state=AccessibleVersion.ReviewState.PENDING
+        )
+        url = reverse('curation_regenerate', kwargs={'pk': self.submission.id})
+        response = self.client.post(url)
+        self.assertIn(response.status_code, [200, 302])
+        version.refresh_from_db()
+        self.assertEqual(version.review_state, AccessibleVersion.ReviewState.SUPERSEDED)

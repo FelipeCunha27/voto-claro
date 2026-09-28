@@ -42,7 +42,7 @@ def generate_accessible_version_task(submission_id):
                 who_is_affected=result.who_is_affected,
                 practical_changes=result.practical_changes,
                 points_of_attention=result.points_of_attention,
-                generator_reference="gemini-3.6-flash",
+                generator_reference="gemini-2.5-flash",
             )
             bill.current_version = version
             bill.save(update_fields=['current_version'])
