@@ -183,3 +183,11 @@ class AuditEntry(models.Model):
 
     def delete(self, *args, **kwargs):
         raise ValidationError("AuditEntry cannot be deleted.")
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
