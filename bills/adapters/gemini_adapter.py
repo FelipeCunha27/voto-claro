@@ -68,31 +68,51 @@ def generate_accessible_version(source_text: str, themes: list[str]) -> Generati
     {source_text}
     '''
     
-    try:
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=GenerationResult,
-                temperature=0.2,
-            ),
-        )
+    models_to_try = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.8-flash']
+    import time
+    
+    last_error = None
+    for attempt in range(3):
+        for model_name in models_to_try:
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        response_schema=GenerationResult,
+                        temperature=0.2,
+                    ),
+                )
+                
+                if not response.text:
+                    raise PermanentGenerationError("A IA retornou uma resposta vazia.")
+                    
+                parsed_data = json.loads(response.text)
+                result = GenerationResult(**parsed_data)
+                
+                if not result.is_legislative_text:
+                    raise PermanentGenerationError("O documento enviado não é um texto legislativo válido.")
+                    
+                return result
+                
+            except APIError as e:
+                last_error = e
+                error_str = str(e)
+                if "404" in error_str:
+                    # Modelo indisponível, pula para o próximo modelo do array
+                    continue
+                if "429" in error_str or "503" in error_str:
+                    # Sobrecarga, tenta o próximo modelo
+                    continue
+                # Outros erros da API (ex: 400 Bad Request) são permanentes
+                raise PermanentGenerationError(error_str)
+            except PermanentGenerationError:
+                raise
+            except Exception as e:
+                raise PermanentGenerationError(str(e))
+                
+        # Se esgotou os modelos na rodada, faz backoff de 5s antes de tentar novamente
+        time.sleep(5)
         
-        if not response.text:
-            raise PermanentGenerationError("A IA retornou uma resposta vazia.")
-            
-        parsed_data = json.loads(response.text)
-        result = GenerationResult(**parsed_data)
-        
-        if not result.is_legislative_text:
-            raise PermanentGenerationError("O documento enviado não é um texto legislativo válido.")
-            
-        return result
-        
-    except APIError as e:
-        if "429" in str(e) or "503" in str(e):
-            raise TransientGenerationError(str(e))
-        raise PermanentGenerationError(str(e))
-    except Exception as e:
-        raise PermanentGenerationError(str(e))
+    raise TransientGenerationError(f"Falha após múltiplas tentativas com os modelos de fallback: {str(last_error)}")

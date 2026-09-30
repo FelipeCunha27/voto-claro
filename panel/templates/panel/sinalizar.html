@@ -1,12 +1,9 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sinalizar Problema - {{ bill.title }}</title>
-</head>
-<body>
-    <a href="{% url 'panel_detail' bill.slug %}">&laquo; Voltar para o projeto</a>
+{% extends 'base.html' %}
+
+{% block title %}Sinalizar Problema - {{ bill.title }}{% endblock %}
+
+{% block content %}
+<a href="{% url 'panel_detail' bill.slug %}">&laquo; Voltar para o projeto</a>
     <h1>Sinalizar Problema</h1>
     <p>Projeto: {{ bill.title }}</p>
 
@@ -19,7 +16,6 @@
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Enviar Sinalização</button>
+        <button type="submit" class="btn btn-primary">Enviar Sinalização</button>
     </form>
-</body>
-</html>
+{% endblock %}

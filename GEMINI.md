@@ -92,3 +92,4 @@ Só marque a funcionalidade como concluída depois que todos esses níveis de te
 
 ## 🔄 Mudanças Recentes
 - **bills:** Criação do model `Category` (com testes). Registrado no `admin.py` nativo, ainda sem relacionamentos diretos com outros models.
+- **frontend:** Refatoração completa da interface usando a skill `frontend-design`. Implementado um arquivo CSS central (`static/css/style.css`), unificação de todos os templates via `base.html`, e aplicação de um design system institucional, focado em alta legibilidade e estrutura limpa sem dependência de classes utilitárias excessivas.

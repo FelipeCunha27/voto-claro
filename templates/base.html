@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Voto Claro{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="site-nav">
+            <div class="nav-links">
+                <a href="/" class="brand">Voto Claro</a>
+                <a href="/enviar/">Enviar Texto</a>
+                <a href="/minhas-submissoes/">Minhas Submissões</a>
+                {% if user.is_staff or user.is_superuser %}
+                <a href="/curadoria/">Curadoria</a>
+                {% endif %}
+            </div>
+            
+            <div class="user-controls">
+                {% if user.is_authenticated %}
+                    <span class="text-muted">Logado como {{ user.username }}</span>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary">Entrar</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

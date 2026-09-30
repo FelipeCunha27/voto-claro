@@ -1,63 +1,58 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ bill.title }} - Projeto Acessível</title>
-</head>
-<body>
-    <nav aria-label="Navegação de Retorno">
-        <a href="{% url 'panel_list' %}">Voltar para o Painel</a>
-    </nav>
+{% extends 'base.html' %}
 
-    <main>
-        <article>
-            <header>
-                <h1>{{ bill.title }}</h1>
-                <p><strong>Origem:</strong> {{ bill.origin_body }}</p>
-                
-                {% if bill.current_version and bill.current_version.is_ai_generated %}
-                <div role="note" aria-label="Aviso sobre Inteligência Artificial" class="ai-warning">
-                    <p>⚠️ Este resumo foi gerado por Inteligência Artificial para facilitar a compreensão e pode não refletir todas as nuances jurídicas do texto original.</p>
-                </div>
-                {% endif %}
-                
-                {% if bill.has_pending_review %}
-                <div role="alert" aria-live="polite" class="review-notice" style="border: 2px solid orange; padding: 10px; margin-top: 10px;">
-                    <p>⚠️ Este resumo está pendente de revisão. Uma ou mais inconsistências foram sinalizadas por nossos revisores e o texto pode passar por ajustes em breve.</p>
-                </div>
-                {% endif %}
-            </header>
+{% block title %}{{ bill.title }} - Projeto Acessível{% endblock %}
 
-            {% if bill.current_version %}
-                <section aria-labelledby="heading-summary">
-                    <h2 id="heading-summary">Resumo do Projeto</h2>
-                    <p>{{ bill.current_version.summary }}</p>
-                </section>
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'panel_list' %}" class="btn">&larr; Voltar para o Painel</a>
+</div>
 
-                <section aria-labelledby="heading-affected">
-                    <h2 id="heading-affected">Quem é Afetado?</h2>
-                    <p>{{ bill.current_version.who_is_affected }}</p>
-                </section>
-
-                <section aria-labelledby="heading-changes">
-                    <h2 id="heading-changes">O que muda na prática?</h2>
-                    <p>{{ bill.current_version.practical_changes }}</p>
-                </section>
-
-                <section aria-labelledby="heading-attention">
-                    <h2 id="heading-attention">Pontos de Atenção</h2>
-                    <p>{{ bill.current_version.points_of_attention }}</p>
-                </section>
-                
-                <section aria-label="Ações do Projeto">
-                    <a href="{% url 'panel_original' bill.slug %}">Comparar com Original</a>
-                    <a href="{% url 'panel_sinalizar' bill.slug %}">Sinalizar Imprecisão</a>
-                </section>
-            {% else %}
-                <p role="status">A versão acessível deste projeto ainda não está disponível.</p>
+<article class="document-view">
+    <header class="document-header">
+        <h1>{{ bill.title }}</h1>
+        <div class="document-meta">
+            <span>Origem: {{ bill.origin_body }}</span>
+            {% if bill.current_version and bill.current_version.is_ai_generated %}
+                <span class="badge" aria-label="Aviso: Conteúdo gerado por Inteligência Artificial">Gerado por IA</span>
             {% endif %}
-        </article>
-    </main>
-</body>
-</html>
+        </div>
+        
+        {% if bill.has_pending_review %}
+        <div role="alert" aria-live="polite" class="mt-2" style="background-color: #FEF3C7; border-left: 4px solid #F59E0B; padding: 1rem; border-radius: 4px; color: #92400E;">
+            <p style="margin-bottom: 0;"><strong>Atenção:</strong> Este resumo está pendente de revisão. Uma ou mais inconsistências foram sinalizadas por nossos revisores e o texto pode passar por ajustes em breve.</p>
+        </div>
+        {% endif %}
+    </header>
+
+    <div class="document-body">
+        {% if bill.current_version %}
+            <section aria-labelledby="heading-summary" class="mb-3">
+                <h2 id="heading-summary">Resumo do Projeto</h2>
+                <p>{{ bill.current_version.summary }}</p>
+            </section>
+
+            <section aria-labelledby="heading-affected" class="mb-3">
+                <h2 id="heading-affected">Quem é Afetado?</h2>
+                <p>{{ bill.current_version.who_is_affected }}</p>
+            </section>
+
+            <section aria-labelledby="heading-changes" class="mb-3">
+                <h2 id="heading-changes">O que muda na prática?</h2>
+                <p>{{ bill.current_version.practical_changes }}</p>
+            </section>
+
+            <section aria-labelledby="heading-attention" class="mb-3">
+                <h2 id="heading-attention">Pontos de Atenção</h2>
+                <p>{{ bill.current_version.points_of_attention }}</p>
+            </section>
+            
+            <section aria-label="Ações do Projeto" class="flex gap-md mt-3 border-top pt-3" style="border-top: 1px solid var(--color-border); padding-top: var(--spacing-lg);">
+                <a href="{% url 'panel_original' bill.slug %}" class="btn">Comparar com Original</a>
+                <a href="{% url 'panel_sinalizar' bill.slug %}" class="btn btn-danger">Sinalizar Imprecisão</a>
+            </section>
+        {% else %}
+            <p role="status" class="text-muted">A versão acessível deste projeto ainda não está disponível.</p>
+        {% endif %}
+    </div>
+</article>
+{% endblock %}

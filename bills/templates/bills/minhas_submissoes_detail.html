@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Detalhes da Submissão</title>
-</head>
-<body>
-    <h1>Detalhes da Submissão</h1>
+{% extends 'base.html' %}
+
+{% block title %}Detalhes da Submissão{% endblock %}
+
+{% block content %}
+<h1>Detalhes da Submissão</h1>
     <p><strong>Título:</strong> {{ submission.title }}</p>
     <p><strong>Órgão de Origem:</strong> {{ submission.origin_body }}</p>
     {% if submission.bill_number %}
@@ -40,5 +38,4 @@
     {% endwith %}
 
     <p><a href="{% url 'minhas_submissoes' %}">Voltar para minhas submissões</a></p>
-</body>
-</html>
+{% endblock %}
