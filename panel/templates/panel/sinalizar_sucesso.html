@@ -1,14 +1,10 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sinalização Recebida - {{ bill.title }}</title>
-</head>
-<body>
-    <h1>Sinalização Recebida com Sucesso!</h1>
+{% extends 'base.html' %}
+
+{% block title %}Sinalização Recebida - {{ bill.title }}{% endblock %}
+
+{% block content %}
+<h1>Sinalização Recebida com Sucesso!</h1>
     <p>Obrigado por ajudar a melhorar o Voto Claro. A sua sinalização para o projeto <strong>{{ bill.title }}</strong> foi registrada e será analisada por nossa equipe.</p>
     
     <a href="{% url 'panel_detail' bill.slug %}">Voltar para o projeto</a>
-</body>
-</html>
+{% endblock %}

@@ -40,7 +40,7 @@ sequenceDiagram
     B-->>U: Redireciona para tela de acompanhamento
 
     Note over Task, IA: Processamento Assíncrono
-    Task->>IA: Manda texto para sumarização (gemini-2.5-flash)
+    Task->>IA: Manda texto para sumarização (Fallback: 3.5, 3.6, 3.8)
     IA-->>Task: Retorna JSON estruturado (Resumo)
     Task->>DB: Cria Bill e AccessibleVersion
     Task->>DB: Atualiza Submission (Status: GENERATED)
@@ -57,9 +57,10 @@ sequenceDiagram
 ```
 
 ## 4. Integrações Externas
-A única integração externa de peso é com a API do **Google Gemini** (`gemini-2.5-flash`). 
+A única integração externa de peso é com a API do **Google Gemini**. 
 - **Onde:** `bills/adapters/gemini_adapter.py`.
 - **Como:** Passamos um prompt detalhado exigindo um JSON padronizado através do Pydantic (`GenerationResult`).
+- **🛡️ Sistema de Resiliência (Circuit Breaker):** Devido à instabilidade da API e deprecamento de modelos (ex: erro 404 no 2.5-flash), implementamos um **Fallback Array**. O sistema tenta se conectar aos modelos `gemini-3.5-flash`, `3.6-flash` e `3.8-flash`. Se ocorrer erro de limite (429), indisponibilidade (503) ou modelo não encontrado (404), ele pula automaticamente para o próximo. Caso esgote os modelos, faz um *Exponential Backoff* (espera 5s e tenta novamente).
 
 ## 5. Tarefas Assíncronas (Background Jobs)
 Em vez do Celery, este projeto utiliza o novíssimo ecossistema do Django 6.1 com o plugin `django_tasks_db`. 
@@ -75,3 +76,8 @@ Não há dockerização ou configuração multienvironment (staging/prod) estrut
 1. **Falta de isolamento de Domínio:** A busca e listagem no `panel/views.py` injeta diretamente as lógicas dos *choices* da submissão do `bills/models.py`. Se o modelo interno de processamento do `bills` mudar, o painel de exibição quebra.
 2. **Dependências Ocultas:** O `pyproject.toml` especifica `openai>=3.10.0` mas o código em `gemini_adapter.py` utiliza `google.genai`. Para rodar localmente, o desenvolvedor talvez precise fazer `uv add google-genai`.
 3. **SQLite no Git:** A regra de negócio proíbe o banco de dados no git, mas o `db.sqlite3` atual tem 6MB e, apesar de estar no `.gitignore`, parece ter sido comitado no passado.
+
+## 8. Arquitetura de Frontend
+O design system não utiliza frameworks complexos ou dependências Node/NPM.
+- **CSS Centralizado:** Ocorre no arquivo estático `/static/css/style.css`, lido como pasta estática global do Django configurada em `STATICFILES_DIRS`. 
+- **Herança de Templates:** Todos os templates HTML das aplicações (como `accounts`, `bills`, e `panel`) estendem uma casca principal chamada `base.html` que injeta a navegação e a folha de estilos. Isso garante um layout DRY e um visual institucional rigoroso focado na legibilidade, guiado pela skill `frontend-design`.

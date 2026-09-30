@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Minhas Submissões</title>
-</head>
-<body>
-    <h1>Minhas Submissões</h1>
+{% extends 'base.html' %}
+
+{% block title %}Minhas Submissões{% endblock %}
+
+{% block content %}
+<h1>Minhas Submissões</h1>
     {% if submissions %}
         <ul>
             {% for submission in submissions %}
@@ -20,5 +18,4 @@
         <p>Você ainda não enviou nenhum projeto de lei.</p>
     {% endif %}
     <p><a href="{% url 'enviar' %}">Enviar novo projeto</a></p>
-</body>
-</html>
+{% endblock %}

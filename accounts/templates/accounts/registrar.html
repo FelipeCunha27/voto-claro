@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Registrar - Voto Claro</title>
-</head>
-<body>
-    <h2>Registrar</h2>
+{% extends 'base.html' %}
+
+{% block title %}Registrar - Voto Claro{% endblock %}
+
+{% block content %}
+<h2>Registrar</h2>
     <form method="post" action="{% url 'registrar' %}">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Criar conta</button>
+        <button type="submit" class="btn btn-primary">Criar conta</button>
     </form>
     <p>Já possui conta? <a href="{% url 'login' %}">Entrar</a></p>
-</body>
-</html>
+{% endblock %}

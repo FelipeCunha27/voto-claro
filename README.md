@@ -8,47 +8,61 @@ Imagine um funil: qualquer cidadão pode enviar um arquivo PDF ou texto de uma l
 
 ---
 
-## 🚀 Como rodar o projeto localmente
+## 🚀 Como testar localmente (One-Click Demo)
 
-Este projeto utiliza o [uv](https://github.com/astral-sh/uv) como gerenciador de dependências e ambientes.
+Este projeto utiliza o [uv](https://github.com/astral-sh/uv) como gerenciador de dependências. Preparamos um script para você testar a interface **sem precisar configurar chaves de API da OpenAI/Google**.
 
 ### 1. Pré-requisitos
 - Python 3.14+
-- `uv` instalado na máquina (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
+- `uv` instalado (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
 
-### 2. Configuração do ambiente
-Clone o repositório e sincronize as dependências. O `uv` vai criar o `.venv` automaticamente.
+### 2. Instalação e Banco de Dados
+Clone o repositório e aplique as migrações (o `.venv` é automático):
 
 ```bash
 uv sync
-```
-
-Crie o arquivo de variáveis de ambiente:
-```bash
 cp .env.example .env
-```
-> **Nota:** Certifique-se de configurar a variável `GEMINI_API_KEY` com uma chave válida no `.env`.
-
-### 3. Banco de dados e Migrações
-O projeto usa SQLite por padrão no ambiente local.
-```bash
 uv run manage.py migrate
 ```
 
-Crie um usuário superadmin (necessário para acessar a curadoria, lembre-se de marcar `is_curator=True` via shell ou Django Admin se necessário):
+### 3. Popular Dados Fictícios (Mock Data)
+Para facilitar testes de portfólio, crie o ambiente de demonstração. Isso injetará projetos de lei fictícios já "traduzidos" no banco e criará o usuário administrador.
+
 ```bash
-uv run manage.py createsuperuser
+uv run manage.py setup_demo
 ```
-*(Dívida Técnica: Atualmente não há um comando customizado para criar curador direto; você pode promover um usuário acessando o painel de admin padrão `/admin/` e marcando a flag `is_curator`)*.
+> **Credenciais de Acesso à Curadoria:**
+> Usuário: `admin` | Senha: `admin123`
 
 ### 4. Rodando o servidor
 ```bash
 uv run manage.py runserver
 ```
-
-Acesse `http://localhost:8000`.
+- **Painel Público (Visualização):** `http://localhost:8000/`
+- **Painel de Curadoria (Aprovação):** `http://localhost:8000/curadoria/`
 
 ---
+
+## ✨ Destaques de Engenharia
+
+O desenvolvimento deste MVP priorizou resiliência, escalabilidade e testes estruturados. Principais desafios resolvidos:
+
+- **1. Resiliência de LLMs (Circuit Breaker):** Durante o desenvolvimento, a API do Gemini sofreu com Erros 503 (Overload). Desenvolvemos um *Fallback Array* acoplado a um *Exponential Backoff*. O sistema tenta conectar ao modelo principal (3.5-flash); em caso de indisponibilidade, escala para os modelos 3.6 e 3.8 com aguardo progressivo, garantindo que a geração não quebre.
+- **2. Arquitetura Assíncrona via SQLite:** O processamento de linguagem natural é muito lento para o ciclo de request/response padrão. Integramos o `django-tasks` rodando diretamente no banco SQLite para enfileirar as traduções no background, evitando o over-engineering de subir um Redis logo no MVP.
+- **3. Prevenção de Duplicidade Oculta:** Múltiplos usuários enviando o mesmo PDF gerariam gasto desnecessário de tokens. O sistema implementa uma camada de extração via `pypdf/python-docx` e salva um Hash Criptográfico do texto; textos repetidos são apenas linkados à versão já traduzida.
+- **4. Strict Quality Gate (TDD):** A aplicação foi guiada por Spec Driven Development e TDD rigoroso. Atualmente, a cobertura de testes da suíte automatizada está em **84%**, mantendo o código na Complexidade Ciclomática "A" (via `radon`).
+- **5. Documentação Viva (Context Engineering):** Uso avançado de *AI Agentic Coding*, com um subagent especializado em ler diffs e atualizar a documentação `docs/` mantendo diagramas estruturais via `mermaid.js` atualizados com o código sem desperdiçar tokens.
+
+---
+
+## 📸 Demonstração da Interface
+*Adicione os screenshots do sistema rodando aqui*
+
+![Painel Público](docs/images/placeholder_public.png)
+*(Sugestão: Adicione aqui uma foto da tela pública)*
+
+![Painel de Curadoria](docs/images/placeholder_curation.png)
+*(Sugestão: Adicione aqui uma foto da tela de curadoria)*
 
 ## 🏗️ Arquitetura Geral (Resumo)
 - **Framework:** Django 6.1
