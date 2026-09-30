@@ -108,3 +108,24 @@ class SubmissionModelTest(TestCase):
         submission_docx.uploaded_file.name = "document.pdf"
         with self.assertRaisesMessage(ValidationError, "O arquivo enviado deve corresponder ao tipo selecionado (PDF/DOCX)"):
             submission_docx.clean()
+
+from bills.models import Category
+from django.db.utils import IntegrityError
+
+class CategoryModelTest(TestCase):
+    """
+    Testes de unidade para o modelo Category.
+    """
+    def test_category_creation(self):
+        category = Category.objects.create(
+            name="Educação",
+            description="Projetos relacionados à educação."
+        )
+        self.assertEqual(category.name, "Educação")
+        self.assertEqual(category.description, "Projetos relacionados à educação.")
+        self.assertEqual(str(category), "Educação")
+    
+    def test_category_name_unique(self):
+        Category.objects.create(name="Saúde")
+        with self.assertRaises(IntegrityError):
+            Category.objects.create(name="Saúde")

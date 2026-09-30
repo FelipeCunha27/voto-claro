@@ -3,6 +3,7 @@
 ## 🌐 Idioma (REGRA ATUALIZADA)
 
 **O projeto utiliza um modelo bilíngue (Documentação em pt-BR e Código em Inglês).**
+
 - **Português (pt-BR):** Documentação (arquivos `.md`), comentários explicativos no código, textos da interface do usuário (templates HTML) e textos voltados ao usuário final.
 - **Inglês:** Todo o código fonte. Isso inclui nomes de variáveis, classes, modelos (models), métodos, funções, arquivos, rotas e mensagens de commit.
 *Exemplo Certo:* `class Bill(models.Model):`
@@ -10,7 +11,7 @@
 
 ## 🏗️ Estado do Projeto
 
-O *Voto Claro* é um projeto Django 6.1 no estágio inicial de scaffold (criado via `django-admin startproject core .` dentro de um projeto `uv`). Ainda não possui apps de domínio, models, views, templates ou testes, não tem commits na master e o README está vazio. Quase qualquer tarefa inicial significa criar estrutura em vez de modificar algo existente. As regras abaixo devem ser seguidas para moldar essa estrutura.
+O *Voto Claro* é um projeto Django 6.1. Já possui as apps de domínio (como bills, accounts e panel) configuradas com models, views, tarefas assíncronas e testes. Sempre busque entender o código existente antes de criar algo novo.
 
 ## 💻 Comandos
 
@@ -67,13 +68,9 @@ Para cada nova funcionalidade, siga obrigatoriamente a skill `[`.agents/skills/d
 Cobertura mínima exigida por funcionalidade: 
 
 - **Models** — campos, validações, métodos, `__str__`, constraints. 
-
 - **Forms** — validação de campos, `clean_`*, mensagens de erro. 
-
 - **Views** — status codes, contexto, permissões, redirecionamentos. 
-
 - **Templates** — renderização, blocos, presença de elementos esperados. 
-
 - **Integração** — fluxo end-to-end cobrindo a jornada do usuário.
 
 Só marque a funcionalidade como concluída depois que todos esses níveis de testes estiverem verdes.
@@ -83,4 +80,15 @@ Só marque a funcionalidade como concluída depois que todos esses níveis de te
 - Toda a documentação técnica fica na pasta `docs/`.
 - Após finalizar cada feature, atualize os arquivos `docs/architecture.md`, `docs/database.md` e `docs/admin.md` para refletir as mudanças no sistema.
 - Use diagramas Mermaid em português para mapear relações.
+- Toda a documentação técnica (em linguagem de negócio e técnica) fica na pasta `docs/`.
+- **GATILHO OBRIGATÓRIO (Sync-Doc):** Sempre que você finalizar a criação de uma funcionalidade, correção de bug ou qualquer alteração de código neste repositório, **sua etapa final e obrigatória** é invocar a skill/subagent `doc-sync-onboarding`.
+- O subagent usará *diffs* para atualizar os arquivos `docs/architecture.md`, `docs/database.md` e `docs/admin.md` e os diagramas Mermaid, mantendo o contexto da IA 100% fiel ao software atual sem desperdiçar tokens reescrevendo tudo do zero.
+- Toda a documentação técnica fica na pasta `docs/`.
+- Após finalizar cada feature, atualize os arquivos `docs/architecture.md`, `docs/database.md` e `docs/admin.md` para refletir as mudanças no sistema.
+- Use diagramas Mermaid em português para mapear relações.
+- **REGRA DE SINCRONIZAÇÃO OBRIGATÓRIA:** Ao finalizar o desenvolvimento de qualquer funcionalidade, correção ou alteração de código, a sua ÚLTIMA etapa obrigatória antes de encerrar o trabalho é executar a skill `doc-sync-onboarding` para atualizar a documentação em `docs/` refletindo as mudanças recentes.
 
+
+
+## 🔄 Mudanças Recentes
+- **bills:** Criação do model `Category` (com testes). Registrado no `admin.py` nativo, ainda sem relacionamentos diretos com outros models.
