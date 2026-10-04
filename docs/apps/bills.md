@@ -10,7 +10,7 @@ Além disso, toda a interface secreta dos "Curadores" (a galera que aprova ou re
 |-----------------|---------------------|
 | `models.py` | Gigante. Contém `Bill`, `Submission`, `AccessibleVersion`, `Flag`, `Theme`, `Category` e `AuditEntry`. |
 | `views.py` | Lida com as telas do usuário ("Minhas Submissões", "Enviar") e as dezenas de rotas exclusivas do painel `/curadoria/`. |
-| `tasks.py` | Contém o "worker" assíncrono `generate_accessible_version_task`. |
+| `tasks.py` | Contém o "worker" assíncrono `generate_accessible_version_task` (Requer `uv run manage.py db_worker`). |
 | `adapters/gemini_adapter.py` | "Conversa" com a API do Google, enviando o prompt do sistema. |
 | `services/extraction.py` | Usa `pypdf` e `python-docx` para garimpar texto bruto. |
 | `services/screening.py` | Checa duplicidade via Hash e validações rudimentares de texto. |

@@ -44,14 +44,22 @@ uv run manage.py setup_demo
 
 
 
-### 4. Rodando o servidor
+### 4. Rodando a Aplicação (Servidor + Fila Assíncrona)
 
+Como a aplicação utiliza processamento assíncrono para conversar com o Gemini, você precisa de **dois terminais** rodando simultaneamente:
+
+**Terminal 1 (Servidor Web):**
 ```bash
 uv run manage.py runserver
 ```
-
 - **Painel Público (Visualização):** `http://localhost:8000/`
 - **Painel de Curadoria (Aprovação):** `http://localhost:8000/curadoria/`
+
+**Terminal 2 (Processador de Tarefas em Background):**
+```bash
+uv run manage.py db_worker
+```
+*(Se você não rodar o `db_worker`, os documentos enviados ficarão eternamente com status "Received" aguardando processamento).*
 
 
 
