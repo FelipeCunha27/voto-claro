@@ -24,6 +24,7 @@ Siga a ordem abaixo para um entendimento progressivo:
 | [`architecture.md`](architecture.md) | Diagramas de fluxo, comunicação entre módulos e fluxos assíncronos. |
 | [`database.md`](database.md) | Entidades, relacionamentos (Diagrama ER) e dicionário de dados. |
 | [`admin.md`](admin.md) | Como funciona a interface de revisão e aprovação (Curadoria) e o painel Admin. |
+| [`ci_cd.md`](ci_cd.md) | Como funcionam os fluxos de AI-Powered DevOps (Tech Lead e Scrum Master via GitHub Actions). |
 
 ### Documentação por Módulo (Apps)
 | App | Responsabilidade | Link |
