@@ -67,6 +67,7 @@ A única integração externa de peso é com a API do **Google Gemini**.
 Em vez do Celery, este projeto utiliza o novíssimo ecossistema do Django 6.1 com o plugin `django_tasks_db`. 
 - Isso significa que as filas residem no próprio banco relacional (SQLite/Postgres).
 - **Tarefa principal:** `generate_accessible_version_task` (em `bills/tasks.py`), engatilhada sempre que uma submissão passa pela validação básica.
+- **Worker:** Para que a fila ande, é OBRIGATÓRIO rodar o processo `uv run manage.py db_worker` em um terminal paralelo ao `runserver`. Sem isso, as submissões ficam eternamente com o status `RECEIVED`.
 
 ## 6. Configuração por Ambiente
 Não há dockerização ou configuração multienvironment (staging/prod) estruturada ainda. 
