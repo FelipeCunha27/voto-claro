@@ -2,10 +2,15 @@
 
 {% block title %}Detalhes da Submissão{% endblock %}
 
+{% block extra_head %}
+    {% if submission.status == 'received' or submission.status == 'processing' %}
+        <meta http-equiv="refresh" content="5">
+    {% endif %}
+{% endblock %}
+
 {% block content %}
 <h1>Detalhes da Submissão</h1>
     <p><strong>Título:</strong> {{ submission.title }}</p>
-    <p><strong>Órgão de Origem:</strong> {{ submission.origin_body }}</p>
     {% if submission.bill_number %}
         <p><strong>Número:</strong> {{ submission.bill_number }}</p>
     {% endif %}
@@ -25,15 +30,24 @@
     <h2>Resumo Gerado pela IA</h2>
     {% with version=submission.bill.current_version|default:submission.accessibleversion_set.first %}
         {% if version %}
-            <p>{{ version.summary }}</p>
+            {% load markdown_filters %}
+            <div class="markdown-content">{{ version.summary|markdownify }}</div>
             <h3>Quem é Afetado</h3>
-            <p>{{ version.who_is_affected }}</p>
+            <div class="markdown-content">{{ version.who_is_affected|markdownify }}</div>
             <h3>Mudanças Práticas</h3>
-            <p>{{ version.practical_changes }}</p>
+            <div class="markdown-content">{{ version.practical_changes|markdownify }}</div>
             <h3>Pontos de Atenção</h3>
-            <p>{{ version.points_of_attention }}</p>
+            <div class="markdown-content">{{ version.points_of_attention|markdownify }}</div>
         {% else %}
-            <p>Ainda não há um resumo gerado para esta submissão. O processamento pode estar em andamento ou ocorreu um erro.</p>
+            {% if submission.status == 'received' or submission.status == 'processing' %}
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p class="loading-title">A inteligência artificial está lendo o seu documento e gerando o relatório... Por favor, aguarde.</p>
+                    <p class="loading-subtitle">A página recarregará automaticamente em alguns segundos.</p>
+                </div>
+            {% else %}
+                <p>Ainda não há um resumo gerado para esta submissão. Ocorreu um erro no processamento.</p>
+            {% endif %}
         {% endif %}
     {% endwith %}
 

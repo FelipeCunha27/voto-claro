@@ -16,7 +16,6 @@ class Bill(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     slug = models.SlugField(max_length=100, unique=True)
     title = models.CharField(max_length=300)
-    origin_body = models.CharField(max_length=200)
     bill_number = models.CharField(max_length=50, blank=True, null=True)
     bill_year = models.IntegerField(blank=True, null=True)
     theme = models.ForeignKey(Theme, on_delete=models.SET_NULL, null=True, blank=True)
@@ -63,11 +62,10 @@ class Submission(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     submitter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     title = models.CharField(max_length=300)
-    origin_body = models.CharField(max_length=200)
     bill_number = models.CharField(max_length=50, blank=True, null=True)
     bill_year = models.IntegerField(blank=True, null=True)
     official_source_url = models.URLField(blank=True, null=True)
-    source_text = models.TextField() # Write-once, 500-50k chars
+    source_text = models.TextField() # Write-once
     uploaded_file = models.FileField(upload_to='submissions/', blank=True, null=True)
     input_kind = models.CharField(max_length=10, choices=InputKind.choices)
     content_hash = models.CharField(max_length=64)
@@ -80,13 +78,13 @@ class Submission(models.Model):
 
     def clean(self):
         if self.source_text:
-            if len(self.source_text) < 500 or len(self.source_text) > 50000:
-                raise ValidationError("O texto deve ter entre 500 e 50.000 caracteres.")
-            
             # Validação simples de português baseada em palavras-chave
             pt_keywords = [' o ', ' a ', ' os ', ' as ', ' um ', ' uma ', ' de ', ' do ', ' da ', ' que ', ' para ']
             if not any(kw in self.source_text.lower() for kw in pt_keywords):
                 raise ValidationError("O texto deve estar em português.")
+
+            if not any(p in self.source_text for p in ".,;:!?"):
+                raise ValidationError("O texto deve conter pontuação.")
 
         if self.input_kind in [self.InputKind.PDF, self.InputKind.DOCX]:
             if not self.uploaded_file:
@@ -97,13 +95,7 @@ class Submission(models.Model):
                 raise ValidationError("O arquivo enviado deve corresponder ao tipo selecionado (PDF/DOCX).")
             if self.input_kind == self.InputKind.DOCX and ext != 'docx':
                 raise ValidationError("O arquivo enviado deve corresponder ao tipo selecionado (PDF/DOCX).")
-
-        if self._state.adding and getattr(self, "submitter_id", None):
-            yesterday = timezone.now() - timedelta(days=1)
-            recent_count = Submission.objects.filter(submitter=self.submitter, created_at__gte=yesterday).count()
-            if recent_count >= 5:
-                raise ValidationError("Limite de submissões excedido. Você pode enviar até 5 projetos a cada 24 horas.")
-
+        # A limitação de 5 submissões diárias foi removida (T048)
 class AccessibleVersion(models.Model):
     class ReviewState(models.TextChoices):
         PENDING = 'pending', 'Pending'

@@ -14,19 +14,22 @@ def generate_accessible_version_task(submission_id):
     try:
         result = generate_accessible_version(submission.source_text, themes)
         
-        if not result.is_legislative_text:
+        if not result.is_valid_document:
             submission.status = Submission.Status.REJECTED
-            submission.rejection_reason = "O texto enviado não parece ser um projeto de lei válido."
+            submission.rejection_reason = "O texto enviado não parece ser um documento político válido para análise."
             submission.save()
             return
             
         with transaction.atomic():
+            if getattr(result, 'official_title', None):
+                submission.title = result.official_title
+                submission.save(update_fields=['title'])
+
             bill = submission.bill
             if not bill:
                 bill = Bill.objects.create(
                     slug=f"projeto-{str(submission.id)[:8]}",
                     title=submission.title,
-                    origin_body=submission.origin_body,
                     bill_number=submission.bill_number,
                     bill_year=submission.bill_year,
                     official_source_url=submission.official_source_url

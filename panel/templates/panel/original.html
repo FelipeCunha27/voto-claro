@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load markdown_filters %}
 
 {% block title %}Comparação - {{ bill.title }}{% endblock %}
 
@@ -12,15 +13,15 @@
 <div class="flex gap-md mt-3" style="align-items: flex-start;">
     <div style="flex: 1; background: var(--color-bg-secondary); padding: var(--spacing-md); border-radius: 4px;">
         <h2 class="mb-2">Texto Original</h2>
-        <div style="white-space: pre-wrap; font-size: 0.95rem;">{{ bill.current_version.submission.source_text }}</div>
+        <div style="font-size: 0.95rem;">{{ bill.current_version.submission.source_text|linebreaks }}</div>
     </div>
     <div style="flex: 1; padding: var(--spacing-md);">
         <h2 class="mb-2">Texto Simplificado</h2>
-        <div style="white-space: pre-wrap; font-size: 0.95rem;">{{ bill.current_version.summary }}
-        
-{{ bill.current_version.who_is_affected }}
-        
-{{ bill.current_version.practical_changes }}</div>
+        <div class="markdown-content" style="font-size: 0.95rem;">
+            {{ bill.current_version.summary|markdownify }}
+            {{ bill.current_version.who_is_affected|markdownify }}
+            {{ bill.current_version.practical_changes|markdownify }}
+        </div>
     </div>
 </div>
 {% endblock %}

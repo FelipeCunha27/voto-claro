@@ -61,6 +61,7 @@ A única integração externa de peso é com a API do **Google Gemini**.
 - **Onde:** `bills/adapters/gemini_adapter.py`.
 - **Como:** Passamos um prompt detalhado exigindo um JSON padronizado através do Pydantic (`GenerationResult`).
 - **🛡️ Sistema de Resiliência (Circuit Breaker):** Devido à instabilidade da API e deprecamento de modelos (ex: erro 404 no 2.5-flash), implementamos um **Fallback Array**. O sistema tenta se conectar aos modelos `gemini-3.5-flash`, `3.6-flash` e `3.8-flash`. Se ocorrer erro de limite (429), indisponibilidade (503) ou modelo não encontrado (404), ele pula automaticamente para o próximo. Caso esgote os modelos, faz um *Exponential Backoff* (espera 5s e tenta novamente).
+- **♻️ Content Enrichment (Qualidade):** Como a IA tende a ser "preguiçosa" e gerar textos muito curtos mesmo com prompts rigorosos, o adapter aplica uma validação estrita (exigindo ≥15 bullet points). Se o resultado falhar na validação, o adapter engatilha automaticamente uma **segunda chamada de enriquecimento** focada apenas na reformatação estrutural antes de devolver os dados, mitigando falhas na arquitetura de prompts.
 
 ## 5. Tarefas Assíncronas (Background Jobs)
 Em vez do Celery, este projeto utiliza o novíssimo ecossistema do Django 6.1 com o plugin `django_tasks_db`. 

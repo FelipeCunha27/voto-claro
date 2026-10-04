@@ -8,7 +8,10 @@ from bills.forms import SubmissionForm
 from bills.models import Bill, Submission, AccessibleVersion, AuditEntry, Flag
 from bills.services.extraction import extract_text
 from bills.services.screening import compute_content_hash
+from bills.services.title_extraction import extract_intelligent_title
 from bills.tasks import generate_accessible_version_task
+
+from django.utils.text import Truncator
 
 @login_required
 def enviar(request):
@@ -18,13 +21,6 @@ def enviar(request):
             
             submission = form.save(commit=False)
             submission.submitter = request.user
-            
-            # --- INJEÇÃO AUTOMÁTICA ---
-            # Preenchendo os campos obrigatórios do banco para a interface ficar limpa
-            submission.title = "Aguardando processamento da Inteligência Artificial"
-            submission.origin_body = "Desconhecido"
-            # --------------------------
-
             
             # Extraction
             if submission.uploaded_file:
@@ -36,9 +32,14 @@ def enviar(request):
             else:
                 submission.input_kind = Submission.InputKind.PASTED
                 if submission.official_source_url and not submission.source_text:
-                    submission.source_text = ("A IA vai processar o link a seguir: " + submission.official_source_url + " . ") * 20
+                    submission.source_text = f"A IA vai processar o link a seguir: {submission.official_source_url} ."
 
-                
+            # --- INJEÇÃO AUTOMÁTICA ---
+            # Preenchendo o título de forma inteligente com base no texto extraído
+            submission.title = extract_intelligent_title(submission.source_text)
+            # --------------------------
+            # --------------------------
+
             # Duplicate check
             content_hash = compute_content_hash(submission.source_text)
             submission.content_hash = content_hash

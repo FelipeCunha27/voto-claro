@@ -43,15 +43,13 @@ graph TD
     D --> F[Task Assíncrona no background]
     
     F --> G(gemini_adapter.py envia o Prompt)
-    G --> H{A IA achou que é uma Lei?}
+    G --> H{É um documento político válido?}
     H -->|Sim| I[Cria Bill e AccessibleVersion]
-    H -->|Não| J[Exceção: FAILED]
+    H -->|Não| J[Rejeita: REJECTED]
 ```
 
 ## 6. ⚠️ Dívidas Técnicas / Bugs Latentes Enormes
 Existem falhas latentes críticas em produção nos arquivos de base:
 
-1. **Bug no Tratamento de Exceções do Gemini:** O script `tasks.py` (linha 17) verifica `if not result.is_legislative_text:` e tenta rejeitar a submissão. Porém, esse código é inalcançável (Dead Code). O `gemini_adapter.py` (linha 88) já explode uma exceção `PermanentGenerationError` se a variável for falsa. Como resultado, submissões não legislativas vão pro banco como `FAILED` (falha técnica do site) em vez de `REJECTED` (negado educadamente por regra de negócio).
-2. **Paliativo de Links Absurdo:** Na `views.enviar` (linha 39), há uma "gambiarra" absurda que burla a validação mínima de 500 caracteres usando multiplicadores de string: se o cara enviar um link de um site, a aplicação enche o input com a frase `"A IA vai processar o link a seguir: [URL] . "` repetida 20 vezes para enganar as travas de validação do formulário.
-3. **Engolir Erros de PDF Silenciosamente:** Em `extraction.py`, o loop que lê o PDF está num bloco `try... except Exception: pass`. Se o arquivo PDF for corrompido ou encriptado, ele retorna string vazia sem dar erro, e a view superior acaba quebrando na validação de "mínimo de caracteres".
-4. **Hardcode de Banco:** Na `views.enviar`, o código enfia obrigatoriamente a string `"Aguardando processamento da Inteligência Artificial"` em campos de título. Se alguém esquecer desse fato e renderizar a submissão bruta no painel, teremos lixo na tela.
+1. **Engolir Erros de PDF Silenciosamente:** Em `extraction.py`, o loop que lê o PDF está num bloco `try... except Exception: pass`. Se o arquivo PDF for corrompido ou encriptado, ele retorna string vazia sem dar erro.
+2. **Título Derivado Incompleto:** Na `views.enviar`, o código parou de forçar um título estático ("Aguardando processamento..."), mas agora utiliza os primeiros 50 caracteres do `source_text`. Isso pode gerar títulos confusos no painel temporário, especialmente se o texto extraído do arquivo iniciar com metadados, cabeçalhos irrelevantes ou sujeira de formatação.

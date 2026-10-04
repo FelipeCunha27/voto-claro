@@ -26,7 +26,6 @@
                         <a href="{% url 'panel_detail' bill.slug %}">{{ bill.title }}</a>
                     </h2>
                     <div class="document-meta">
-                        <span>Origem: {{ bill.origin_body }}</span>
                         {% if bill.current_version and bill.current_version.is_ai_generated %}
                             <span class="badge" aria-label="Aviso: Conteúdo gerado por Inteligência Artificial">Gerado por IA</span>
                         {% endif %}

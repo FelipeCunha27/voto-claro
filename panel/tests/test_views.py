@@ -13,14 +13,12 @@ class PublicPanelViewsTest(TestCase):
         self.bill_generated = Bill.objects.create(
             slug="projeto-gerado",
             title="Projeto Gerado",
-            origin_body="Câmara",
             bill_number="123",
             bill_year=2023
         )
         self.sub_generated = Submission.objects.create(
             submitter=self.user,
             title="Projeto Gerado",
-            origin_body="Câmara",
             source_text="Texto do projeto gerado",
             input_kind=Submission.InputKind.PASTED,
             content_hash="hash1",
@@ -32,14 +30,12 @@ class PublicPanelViewsTest(TestCase):
         self.bill_processing = Bill.objects.create(
             slug="projeto-processando",
             title="Projeto Processando",
-            origin_body="Câmara",
             bill_number="124",
             bill_year=2023
         )
         self.sub_processing = Submission.objects.create(
             submitter=self.user,
             title="Projeto Processando",
-            origin_body="Câmara",
             source_text="Texto do projeto processando",
             input_kind=Submission.InputKind.PASTED,
             content_hash="hash2",
@@ -51,14 +47,12 @@ class PublicPanelViewsTest(TestCase):
         self.bill_failed = Bill.objects.create(
             slug="projeto-falho",
             title="Projeto Falho",
-            origin_body="Câmara",
             bill_number="125",
             bill_year=2023
         )
         self.sub_failed = Submission.objects.create(
             submitter=self.user,
             title="Projeto Falho",
-            origin_body="Câmara",
             source_text="Texto do projeto falho",
             input_kind=Submission.InputKind.PASTED,
             content_hash="hash3",
@@ -88,6 +82,72 @@ class PublicPanelViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.bill_generated.title)
 
+    def test_detail_renders_markdown(self):
+        """
+        T049: A view de detalhes deve renderizar Markdown (ex: **negrito** e listas -)
+        para tags HTML reais, garantindo a formatação.
+        """
+        from bills.models import AccessibleVersion
+        version = AccessibleVersion.objects.create(
+            bill=self.bill_generated,
+            submission=self.sub_generated,
+            version_number=1,
+            summary="Resumo",
+            practical_changes="**Atenção:**\n\n- Ponto 1\n- Ponto 2"
+        )
+        self.bill_generated.current_version = version
+        self.bill_generated.save()
+        
+        response = self.client.get(f"/projeto/{self.bill_generated.slug}/")
+        
+        # Checamos se o HTML foi renderizado em <strong> e <ul><li>
+        self.assertContains(response, "<strong>Atenção:</strong>", html=False)
+        self.assertContains(response, "<li>Ponto 1</li>", html=False)
+        self.assertContains(response, "<li>Ponto 2</li>", html=False)
+
+    def test_detail_renders_scannable_markdown_in_all_four_sections(self):
+        """
+        T059: os 4 campos gerados pela IA (resumo, quem é afetado, o que muda
+        e pontos de atenção) devem exibir subtítulos, negrito e listas
+        (inclusive numeradas e logo após um rótulo) como HTML real.
+        """
+        from bills.models import AccessibleVersion
+
+        def scannable(label):
+            return (
+                f"### {label} em poucas palavras\n"
+                "\n"
+                f"Este trecho resume **{label.lower()}**. É curto e direto.\n"
+                "\n"
+                f"**Passos de {label.lower()}:**\n"
+                f"1. Primeiro passo de {label.lower()}\n"
+                f"2. Segundo passo de {label.lower()}\n"
+            )
+
+        labels = {
+            "summary": "Resumo",
+            "who_is_affected": "Afetados",
+            "practical_changes": "Mudanças",
+            "points_of_attention": "Atenção",
+        }
+        version = AccessibleVersion.objects.create(
+            bill=self.bill_generated,
+            submission=self.sub_generated,
+            version_number=1,
+            **{field: scannable(label) for field, label in labels.items()},
+        )
+        self.bill_generated.current_version = version
+        self.bill_generated.save()
+
+        response = self.client.get(f"/projeto/{self.bill_generated.slug}/")
+
+        for label in labels.values():
+            with self.subTest(section=label):
+                self.assertContains(response, f"<h3>{label} em poucas palavras</h3>", html=False)
+                self.assertContains(response, f"<strong>{label.lower()}</strong>", html=False)
+                self.assertContains(response, f"<li>Primeiro passo de {label.lower()}</li>", html=False)
+        self.assertContains(response, "<ol>", count=4, html=False)
+
     def test_detail_returns_404_for_processing_project(self):
         """
         A rota de Detalhes (/projeto/<slug>/) deve retornar Erro 404 para projetos que estão em processamento.
@@ -109,14 +169,12 @@ class PublicPanelViewsTest(TestCase):
         bill_search = Bill.objects.create(
             slug="projeto-busca-especifica",
             title="Projeto Busca Especifica",
-            origin_body="Senado",
             bill_number="999",
             bill_year=2024
         )
         Submission.objects.create(
             submitter=self.user,
             title="Projeto Busca Especifica",
-            origin_body="Senado",
             source_text="Texto",
             input_kind=Submission.InputKind.PASTED,
             content_hash="hash999",
@@ -138,14 +196,12 @@ class PublicPanelViewsTest(TestCase):
             b = Bill.objects.create(
                 slug=f"projeto-paginado-{i}",
                 title=f"Projeto Paginado {i}",
-                origin_body="Camara",
                 bill_number=str(i),
                 bill_year=2024
             )
             Submission.objects.create(
                 submitter=self.user,
                 title=f"Projeto Paginado {i}",
-                origin_body="Camara",
                 source_text="Texto",
                 input_kind=Submission.InputKind.PASTED,
                 content_hash=f"hash-pag-{i}",

@@ -13,13 +13,11 @@ class ReviewNoticeTest(TestCase):
         self.bill = Bill.objects.create(
             slug='pl-notice',
             title='Projeto Notice Test',
-            origin_body='Câmara dos Deputados',
             review_notice_override=Bill.ReviewNoticeOverride.AUTO
         )
         self.submission = Submission.objects.create(
             submitter=self.user,
             title='Projeto Notice Test',
-            origin_body='Câmara dos Deputados',
             source_text='Texto fonte',
             input_kind=Submission.InputKind.PASTED,
             content_hash='dummyhash',

@@ -14,10 +14,6 @@ def panel_list(request):
     if theme_slug:
         qs = qs.filter(theme__slug=theme_slug)
         
-    origin = request.GET.get('origin')
-    if origin:
-        qs = qs.filter(origin_body__icontains=origin)
-        
     date_from = request.GET.get('date_from')
     if date_from:
         qs = qs.filter(first_published_at__gte=date_from)
