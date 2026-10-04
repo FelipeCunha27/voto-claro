@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load markdown_filters %}
 
 {% block title %}{{ bill.title }} - Projeto Acessível{% endblock %}
 
@@ -11,7 +12,6 @@
     <header class="document-header">
         <h1>{{ bill.title }}</h1>
         <div class="document-meta">
-            <span>Origem: {{ bill.origin_body }}</span>
             {% if bill.current_version and bill.current_version.is_ai_generated %}
                 <span class="badge" aria-label="Aviso: Conteúdo gerado por Inteligência Artificial">Gerado por IA</span>
             {% endif %}
@@ -28,22 +28,22 @@
         {% if bill.current_version %}
             <section aria-labelledby="heading-summary" class="mb-3">
                 <h2 id="heading-summary">Resumo do Projeto</h2>
-                <p>{{ bill.current_version.summary }}</p>
+                <div class="markdown-content">{{ bill.current_version.summary|markdownify }}</div>
             </section>
 
             <section aria-labelledby="heading-affected" class="mb-3">
                 <h2 id="heading-affected">Quem é Afetado?</h2>
-                <p>{{ bill.current_version.who_is_affected }}</p>
+                <div class="markdown-content">{{ bill.current_version.who_is_affected|markdownify }}</div>
             </section>
 
             <section aria-labelledby="heading-changes" class="mb-3">
                 <h2 id="heading-changes">O que muda na prática?</h2>
-                <p>{{ bill.current_version.practical_changes }}</p>
+                <div class="markdown-content">{{ bill.current_version.practical_changes|markdownify }}</div>
             </section>
 
             <section aria-labelledby="heading-attention" class="mb-3">
                 <h2 id="heading-attention">Pontos de Atenção</h2>
-                <p>{{ bill.current_version.points_of_attention }}</p>
+                <div class="markdown-content">{{ bill.current_version.points_of_attention|markdownify }}</div>
             </section>
             
             <section aria-label="Ações do Projeto" class="flex gap-md mt-3 border-top pt-3" style="border-top: 1px solid var(--color-border); padding-top: var(--spacing-lg);">

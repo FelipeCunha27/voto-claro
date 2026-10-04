@@ -26,7 +26,6 @@ erDiagram
         UUID id PK
         string slug
         string title
-        string origin_body
         string bill_number
         string current_version_id FK
     }
@@ -38,6 +37,7 @@ erDiagram
         string input_kind
         string content_hash
         string failure_reason
+        string rejection_reason
         int attempt_count
     }
 
@@ -76,7 +76,7 @@ erDiagram
 | `Theme` | `name`, `slug` | `slug` (Unique) | Temas (Educação, Saúde). |
 | `Category` | `name`, `description` | `name` (Unique) | Categorias de agrupamento genérico. |
 | `Bill` | `id` (UUID), `title`, `slug`, `current_version` (FK) | `current_version` aponta para a `AccessibleVersion` atual | O conceito guarda-chuva de um Projeto de Lei. |
-| `Submission` | `id`, `submitter` (FK), `source_text`, `status`, `input_kind`, `content_hash` | Protegido contra deleção do usuário | Rastreia a tentativa de upload crua e o status do processamento da IA (RECEIVED, FAILED, PUBLISHED...). |
+| `Submission` | `id`, `submitter` (FK), `source_text`, `status`, `input_kind`, `content_hash`, `rejection_reason` | Protegido contra deleção do usuário | Rastreia a tentativa de upload crua e o status do processamento da IA (RECEIVED, FAILED, REJECTED...). Caso REJECTED, contém o motivo formatado na rejection_reason. |
 | `AccessibleVersion` | `id`, `bill` (FK), `submission` (FK), `version_number`, `summary`, `practical_changes`, `review_state` | Index: `[review_state, generated_at]`. Unique: `[bill, version_number]` | O resumo real traduzido pelo Gemini. A tabela é versionada. |
 | `Flag` | `id`, `version` (FK), `reporter` (FK), `state`, `description`, `resolution_note` | - | Denúncias (erros de tradução relatados no painel público). |
 | `AuditEntry` | `id`, `bill` (FK), `version` (FK), `action`, `actor` (FK), `reason` | - | Tabela *append-only* logando as ações críticas do sistema. |
@@ -85,4 +85,4 @@ erDiagram
 1. **Recursão de Deleção (Cascata vs Protect):** No model `Submission`, o campo `submitter` (User) possui `on_delete=models.PROTECT`. Mas o `AccessibleVersion` usa `on_delete=models.CASCADE` no `bill`. Excluir uma "Bill" via admin apagará sumariamente os resumos da IA sem choro.
 2. **Ciclo de FK:** O model `Bill` aponta para `AccessibleVersion` (`current_version_id`), e `AccessibleVersion` aponta obrigatoriamente de volta para `Bill`. Inserir dados de teste direto no banco vai exigir desabilitar checagem de integridade ou inserir como nulo antes.
 3. **AuditEntry Invencível:** O `AuditEntry.save()` joga exceção se a PK já existir (`not self._state.adding`). O `.delete()` também joga uma `ValidationError`. Isso significa que nem o super admin via shell consegue deletar com facilidade, a menos que ele execute QuerySets raw de banco ignorando os hooks do Django.
-4. **Campo Oculto:** O `Submission.source_text` aceita entre 500 e 50.000 caracteres, mas tem uma validação rústica que busca `[' o ', ' a ', ' os ', ' as ']` para conferir se é português. É altamente recomendável no futuro migrar isso pra uma detecção mais esperta.
+4. **Validação Rústica:** O `Submission.source_text` possui uma validação muito simplista baseada em stop words do português como `[' o ', ' a ', ' os ', ' as ']` e a exigência de pelo menos um caractere de pontuação (`. , ; : ! ?`). É altamente recomendável migrar isso para uma validação inteligente com IA ou NLP no futuro.

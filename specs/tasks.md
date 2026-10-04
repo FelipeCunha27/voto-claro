@@ -143,6 +143,52 @@
 - [x] T039 Update `docs/architecture.md`, `docs/database.md`, and `docs/admin.md` with new features and models.
 - [x] T040 Security Review: Verify LGPD compliance (no public PII) and CSRF protection on all forms.
 - [x] T041 Code cleanup, review indexes according to data-model.md.
+- [x] T042 Demand punctuation in the submission Text.
+- [x] T043 Changing the title submission for something related to the text.
+- [x] T044 Remove "Oŕgão de Origem".
+- [x] T045 Ajustar submissões para gerar resultado corretamente quando é enviado documento do plano de governo.
+- [x] T046 Remover completamente a regra de limite de caracteres (500 a 50.000) na submissão de projetos.
+- [x] T047 Formatar campos do relatório na IA com bullet points e garantir renderização de quebras de linha (`linebreaks`) nos templates.
+- [x] T048 Remover o limite de taxa de submissões (5 submissões por 24h).
+- [x] T049 Corrigir formatação Markdown da IA nos templates, substituindo o `linebreaks` por uma renderização de Markdown real que suporte negrito (`**`) e listas corretas.
+- [x] T050 Reforçar formatação do texto gerado pela IA com bullet points detalhados e hierarquia visual.
+- [x] T051 Atualizar o prompt em `bills/adapters/gemini_adapter.py` para exigir **no mínimo 15 bullet points** por campo, separando cada tópico/seção com uma linha em branco.
+- [x] T052 Exigir uso de bullet points (`-` ou `*`) para cada item individual.
+- [x] T053 Quando houver subtópicos ou categorias, exigir hierarquia visual usando indentação (sub-bullets com `  -`) ou diferentes estilos de marcadores.
+- [x] T054 O conteúdo original deve ser mantido intacto — a mudança é puramente de formatação e organização.
+- [x] T055 Garantir que o filtro `markdownify` em `panel/templatetags/markdown_filters.py` renderize corretamente listas aninhadas (nested lists) e espaçamento entre seções.
+- [x] T056 Escrever testes unitários para o adapter validando que a resposta contém ≥ 15 linhas iniciando com `-` ou `*` nos campos `summary`, `practical_changes`, `who_is_affected` e `points_of_attention`.
+- [x] T057 Escrever testes para o template filter verificando renderização correta de listas aninhadas com Markdown.
+- [x] **T058: Extração Inteligente do Título da Submissão**
+  - [x] **Contexto:** Atualmente, o `Submission.clean()` apenas recorta os primeiros 50 caracteres do `source_text` para definir o título.
+  - [x] **Objetivo:** Alterar essa lógica para identificar e extrair o título real / texto principal da primeira página do projeto de lei, plano de governo ou PEC.
+  - [x] Implementar heurística no `bills/models.py` (ou delegar ao adapter da IA durante a submissão) para capturar o título oficial em vez de lixo/protocolo do início do PDF.
+  - [x] Atualizar os testes da submissão para validar esse novo comportamento.
+- [x] **T059: Escaneabilidade e Legibilidade dos Campos Gerados pela IA**
+  - [x] **Contexto:** Os campos gerados pelo Gemini (`summary`, `who_is_affected`, `practical_changes` e `points_of_attention`) hoje seguem a regra rígida de **no mínimo 15 bullet points** (T051/T056), o que deixa o texto denso, repetitivo e difícil de "bater o olho" para o cidadão comum.
+  - [x] **Objetivo:** Reformatar **os 4 campos gerados pela IA** aplicando princípios de escaneabilidade, para que o leitor capte a informação principal sem precisar ler tudo de forma linear.
+  - [x] **Escopo:** A reformatação vale para `summary`, `who_is_affected`, `practical_changes` e `points_of_attention`. Documentação e textos fixos da interface ficam fora desta task.
+  - [x] **Remover a regra dos 15 tópicos:**
+    - [x] Retirar a exigência de "no mínimo 15 bullet points" do prompt principal e do prompt de enrichment (`_build_enrichment_prompt`) em `bills/adapters/gemini_adapter.py`.
+    - [x] Remover ou substituir `validate_bullet_point_formatting(min_bullets=15)` e `_has_sufficient_formatting` por uma checagem que não dependa de contagem de bullets.
+    - [x] Atualizar ou remover os testes do T056 que validam ≥ 15 linhas com `-`/`*`.
+  - [x] **Cobertura completa obrigatória:** Sem o mínimo de 15 tópicos, cada campo ainda precisa cobrir **todos os tópicos/eixos do documento** relevantes ao seu propósito (ex.: todos os eixos de um plano de governo, como saúde, educação, segurança, economia etc.), sem omitir nenhum. A quantidade de itens passa a ser definida pelo conteúdo, não por um número fixo.
+  - [x] **Público-alvo e tom:** Público geral. Tom **conversacional e acessível**: evitar jargão desnecessário (ou explicá-lo quando inevitável), escrevendo como se estivesse explicando a um amigo. Em `points_of_attention`, manter o tom neutro e apartidário já exigido hoje.
+  - [x] **Técnicas de escaneabilidade a exigir no prompt para os 4 campos:**
+    - [x] **Títulos e subtítulos claros:** dividir cada campo em seções com cabeçalhos descritivos (`###`/`####`) que resumam cada parte (ex.: um subtítulo por eixo/tópico do documento).
+    - [x] **Listas com marcadores ou numeração:** converter parágrafos densos em listas quando fizer sentido, agrupando ideias relacionadas.
+    - [x] **Destaque visual:** usar **negrito** para termos-chave, conceitos centrais e conclusões importantes.
+    - [x] **Parágrafos curtos:** no máximo 2–3 frases por parágrafo.
+    - [x] **Espaçamento:** linha em branco entre seções para reduzir a densidade visual.
+    - [x] **Frases diretas:** priorizar clareza; colocar a informação essencial no início de cada ponto.
+  - [x] **O que preservar:** manter o significado e **toda** a informação relevante do documento original, incluindo as citações diretas exigidas em `practical_changes`. A mudança é de formatação e acessibilidade, não de conteúdo.
+  - [x] Ajustar o mecanismo de "enrichment" (retry) do adapter para reforçar as regras de escaneabilidade e de cobertura completa quando qualquer um dos 4 campos vier fora do padrão (ex.: sem subtítulos, com parágrafos longos ou com tópicos faltando).
+  - [x] Garantir que o filtro `markdownify` (`panel/templatetags/markdown_filters.py`) e o CSS (`static/css/style.css`) renderizem bem cabeçalhos, negritos, listas numeradas e espaçamento nos blocos dos 4 campos em `panel/templates/panel/detail.html`.
+  - [x] **TDD (Red → Green → Refactor):** escrever antes os testes:
+    - [x] Adapter: o prompt contém as instruções de escaneabilidade, tom e cobertura completa para os 4 campos; o prompt **não** contém mais a exigência de 15 bullets; campos com subtítulos, negrito e parágrafos ≤ 3 frases são aceitos; qualquer campo fora do padrão dispara o enrichment. *(Red: `bills/tests/test_scannability.py`)*
+    - [x] Template filter: renderização correta de `###`/`####`, `**negrito**`, listas numeradas e aninhadas. *(Red: `panel/tests/test_markdown_filters.py`)*
+    - [x] Templates/Integração: a página de detalhe exibe no HTML final os cabeçalhos e listas dos 4 campos. *(Red: `panel/tests/test_views.py` e `bills/tests/test_scannability_integration.py`)*
+  - [x] Ao concluir, executar a skill `doc-sync-onboarding` para atualizar `docs/` e o `GEMINI.md`.
 
 ---
 
@@ -188,3 +234,24 @@ Task: "Integration tests for enviar views"
 - Write tests first per TDD rules.
 - Verify each phase completes independently.
 - Avoid vague tasks.
+- [x] **T060: Nova Formatação em Prosa Espaçada (Remover Bullets)**
+  - [x] **Contexto:** O cliente solicitou uma nova estrutura visual onde listas com marcadores (`-`, `*`) são totalmente abandonadas em favor de parágrafos diretos introduzidos por rótulos (ex: "**Nome do Grupo:** descrição").
+  - [x] **Objetivo:** Atualizar os prompts e validações para gerar texto no novo formato especificado.
+  - [x] **Regras atualizadas:**
+    - Proibir o uso de listas/bullet points (`-`, `*`).
+    - Exigir que os itens sejam formatados como parágrafos independentes começando com um termo em **negrito**, seguido de dois pontos.
+    - Exigir o uso de subtítulos (como "O Grande Objetivo", "Os Grupos Mais Afetados", etc) usando Markdown (`###` ou `####`).
+    - Manter o espaçamento duplo obrigatório entre todos os parágrafos.
+  - [x] **TDD (Red → Green → Refactor):**
+    - [x] Atualizar `test_scannability.py` para exigir ausência de bullet points e presença de rótulos em negrito.
+    - [x] Modificar o prompt do Gemini para aplicar a nova estrutura.
+- [x] **T061: Tela de Carregamento/Auto-reload na Geração da IA**
+  - [x] **Contexto:** Após enviar um documento, o usuário é redirecionado para a página de detalhes da submissão. Como a geração pela IA ocorre em background via task assíncrona, o usuário precisa ficar recarregando a página manualmente para ver o resultado.
+  - [x] **Objetivo:** Implementar um mecanismo de auto-reload (polling) na página de detalhes da submissão quando ela estiver em status de processamento (`RECEIVED` ou `PROCESSING`).
+  - [x] **O que fazer:**
+    - Atualizar o template `bills/minhas_submissoes_detail.html` para incluir um `<meta http-equiv="refresh" content="5">` ou um script JS leve de polling condicionado ao status da submissão.
+    - Otimizar a UI desse estado de carregamento: adicionar um "spinner" de loading animado e uma mensagem amigável (ex: *"A inteligência artificial está lendo o seu documento e gerando o relatório... Por favor, aguarde."*).
+    - Garantir que a página pare de recarregar automaticamente assim que a submissão transicionar para um status final (ex: `GENERATED`, `PUBLISHED`, `FAILED`, `REJECTED`).
+  - [x] **TDD (Red → Green → Refactor):**
+    - [x] Criar teste de visualização (view test) garantindo que o cabeçalho de reload ou o script JS está presente na resposta quando o status é `PROCESSING`.
+    - [x] Garantir que o script/reload não está presente quando o status é `GENERATED`.

@@ -13,12 +13,10 @@ class FlagModelAndViewsTest(TestCase):
         self.bill = Bill.objects.create(
             slug='pl-123-2023',
             title='Projeto Teste',
-            origin_body='Câmara dos Deputados'
         )
         self.submission = Submission.objects.create(
             submitter=self.user,
             title='Projeto Teste',
-            origin_body='Câmara dos Deputados',
             source_text='Texto fonte',
             input_kind=Submission.InputKind.PASTED,
             content_hash='dummyhash',
@@ -84,6 +82,21 @@ class FlagModelAndViewsTest(TestCase):
         self.assertTemplateUsed(response, 'panel/original.html')
         self.assertIn('bill', response.context)
         self.assertEqual(response.context['bill'], self.bill)
+
+    def test_original_renders_markdown(self):
+        """T049: GET /projeto/<slug>/original/ deve renderizar Markdown na versão acessível e no texto original."""
+        self.version.practical_changes = "Intro\n\n- Bullet 1\n- Bullet 2"
+        self.version.save()
+        
+        # Test also source_text for linebreaks
+        self.submission.source_text = "Orig 1\nOrig 2"
+        self.submission.save()
+
+        url = reverse('panel_original', kwargs={'slug': self.bill.slug})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "<li>Bullet 1</li>", html=False)
+        self.assertContains(response, "Orig 1<br>Orig 2", html=False)  # source_text can use linebreaks or markdown
 
     def test_sinalizar_view_get(self):
         """T030: GET /projeto/<slug>/sinalizar/ deve renderizar o formulário de sinalização."""

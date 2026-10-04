@@ -307,3 +307,93 @@ textarea {
 .justify-between { justify-content: space-between; }
 .align-center { align-items: center; }
 .gap-md { gap: var(--spacing-md); }
+
+/* Loading State (T061) */
+.loading-state {
+    text-align: center;
+    padding: 2rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin: 2rem 0;
+}
+
+.spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0,0,0,0.1);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-state p.loading-title {
+    margin-top: 1rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.loading-state p.loading-subtitle {
+    font-size: 0.9em;
+    color: var(--text-muted);
+}
+
+/* Aumentando o tamanho dos títulos (T060) */
+h1 { 
+    font-size: 3rem; 
+    font-weight: 800; 
+    letter-spacing: -0.02em; 
+}
+
+h2 { 
+    font-size: 2.5rem; 
+    font-weight: 700;
+    margin-top: 2.5rem; 
+    margin-bottom: 1.5rem;
+    color: var(--color-text-primary);
+    letter-spacing: -0.01em;
+}
+
+/* Títulos das sessões (Ex: Quem é Afetado) */
+main h3 { 
+    font-size: 2.0rem; 
+    font-weight: 700;
+    color: var(--color-accent);
+    margin-top: 3rem; 
+    margin-bottom: 1.5rem;
+    border-left: 6px solid var(--color-accent);
+    padding-left: 1rem;
+    background: linear-gradient(90deg, rgba(14, 91, 82, 0.05) 0%, rgba(255,255,255,0) 100%);
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-radius: 0 8px 8px 0;
+}
+
+/* Subtítulos gerados pela IA (###) */
+.markdown-content h3 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 0.5rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+    border-left: none; /* Reset do border-left do main h3 */
+    background: none;
+    padding-left: 0;
+}
+
+/* Sub-subtítulos gerados pela IA (####) */
+.markdown-content h4 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}

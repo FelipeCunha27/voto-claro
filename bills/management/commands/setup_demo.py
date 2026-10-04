@@ -39,7 +39,6 @@ class Command(BaseCommand):
             slug='plano-governo-educacao-2026',
             defaults={
                 'title': 'Plano de Governo: Educação para o Futuro 2026 (Candidata A)',
-                'origin_body': 'TSE - Tribunal Superior Eleitoral',
                 'theme': tema_educacao,
             }
         )
@@ -49,7 +48,6 @@ class Command(BaseCommand):
             defaults={
                 'submitter': user,
                 'title': 'Plano de Governo: Educação para o Futuro 2026',
-                'origin_body': 'TSE - Tribunal Superior Eleitoral',
                 'source_text': 'O presente plano de governo visa estruturar a educação estadual com foco na erradicação do analfabetismo funcional...',
                 'input_kind': Submission.InputKind.PASTED,
                 'status': Submission.Status.PUBLISHED,
@@ -79,7 +77,6 @@ class Command(BaseCommand):
             slug='plano-governo-sustentavel-2028',
             defaults={
                 'title': 'Plano de Gestão Municipal: Nova Cidade Sustentável 2028 (Candidato B)',
-                'origin_body': 'TSE - Tribunal Superior Eleitoral',
                 'theme': tema_cidade,
             }
         )
@@ -89,7 +86,6 @@ class Command(BaseCommand):
             defaults={
                 'submitter': user,
                 'title': 'Plano de Gestão Municipal: Nova Cidade Sustentável 2028',
-                'origin_body': 'TSE - Tribunal Superior Eleitoral',
                 'source_text': 'Nossa gestão será pautada pela renovação da malha viária e transição energética da frota de transporte coletivo municipal...',
                 'input_kind': Submission.InputKind.PASTED,
                 'status': Submission.Status.GENERATED,

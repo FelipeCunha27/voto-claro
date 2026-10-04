@@ -1,0 +1,1 @@
+- [Estratégia de enrichment no adapter do Gemini](gemini-adapter-enrichment.md) — Explica validação estrita (≥15 bullets) e a segunda requisição automática de "enrichment" para forçar melhor formatação de IA; além do detalhe de 4 espaços do markdownify.
